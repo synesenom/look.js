@@ -1,0 +1,215 @@
+html {
+	font-family: 'Work Sans', sans-serif;
+	font-weight: 200;
+	margin: 0;
+	padding: 0;
+}
+body {
+	position: relative;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+}
+.node {
+	stroke: #ffffff;
+	stroke-width: 1px;
+}
+.link {
+	stroke: #999;
+}
+.time {
+	position: fixed;
+	bottom: 20pt;
+	right: 20pt;
+}
+
+.control-panel {
+	position: fixed;
+	float: left;
+	width: 126pt;
+	margin: 10pt;
+	border: 0pt solid #3399ff;
+	font-size: 10pt;
+	font-weight: 400;
+}
+.control-element {
+	position: relative;
+	display: block;
+	clear: both;
+	width: 120pt;
+	padding: 3pt;
+}
+.control-element .label {
+	position: relative;
+	float: left;
+	padding: 2pt;
+}
+.control-element .value {
+	position: relative;
+	display: block;
+	float: right;
+	padding: 2pt 5pt 2pt 5pt;
+	cursor: pointer;
+	border-radius: 2pt;
+}
+.control-element .value:hover {
+	color: white;
+	background-color: #3399ff;
+}
+
+.howto-panel {
+	position: fixed;
+	bottom: 20pt;
+	float: left;
+	width: 126pt;
+	margin: 10pt;
+	border: 0pt solid #3399ff;
+	font-size: 10pt;
+	font-weight: 400;
+}
+.howto-element {
+	position: relative;
+	display: block;
+	clear: both;
+	width: 120pt;
+	padding: 0pt 3pt;
+}
+.howto-element .label {
+	position: relative;
+	float: left;
+	padding: 2pt;
+}
+.howto-element .value {
+	position: relative;
+	display: block;
+	float: right;
+	margin-top: 4pt;
+}
+.howto-element .button {
+	display: block;
+	border: 1px solid #3399ff;
+	border-radius: 3pt;
+	background-color: #f7f7ff;
+	padding: 3pt 5pt;
+	min-width: 8pt;
+	text-align: center;
+	font-size: 8pt;
+	cursor: pointer;
+}
+.howto-element .button:focus,
+.howto-element .button:hover {
+	background-color: #3399ff;
+	color: white;
+}
+
+.dnd {
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	display: none;
+	background-color: rgba(255, 255, 255, 0.9);
+}
+.dnd .message {
+	position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 300px;
+    height: 80px;
+    margin-left: -150px;
+    margin-top: -40px;
+    font-size: 20pt;
+    font-weight: 200;
+    color: #3399ff;
+    text-align: center;
+}
+.dnd .progress-bar {
+	position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0px;
+    height: 1px;
+    background-color: #3399ff;
+    margin-left: -125px;
+}
+
+.help {
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	display: none;
+	opacity: 0;
+	background-color: rgba(255, 255, 255, 0.9);
+}
+.help .box {
+	position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 400px;
+    height: 320px;
+    margin-left: -210px;
+    margin-top: -170px;
+    padding: 20px;
+    font-size: 11pt;
+    font-weight: 200;
+    color: black;
+    text-align: justify;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
+    box-shadow: 1px 1px 2px gray;
+    background-color: white;
+}
+.help .box .content {
+	position: relative;
+}
+
+pre {
+	display: inline;
+	color: #3399ff;
+}
+
+strong {
+	font-weight: 400;
+}
+
+.inline-button {
+	display: inline-block;
+	border: 1px solid #3399ff;
+	border-radius: 3pt;
+	background-color: #f7f7ff;
+	padding: 1pt 3pt;
+	min-width: 6pt;
+	text-align: center;
+	font-size: 0.8em;
+}
+
+#degree-dist {
+	position: absolute;
+	top: 14pt;
+	right: 20pt;
+}
+.axis path,
+.axis line {
+	fill: none;
+	stroke: black;
+	stroke-width: 0.5px;
+	shape-rendering: crispEdges;
+}
+.axis text {
+	font-size: 11px;
+}
+.axis-label {
+	font-size: 9pt;
+}
+.bar {
+	fill: #3399ff;
+}
+#weight-dist {
+	position: absolute;
+	top: 100pt;
+	right: 20pt;
+}
+.path {
+	stroke: #3399ff;
+	stroke-width: 1pt;
+	fill: none;
+}

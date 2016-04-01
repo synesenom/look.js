@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<head>
+<link href='https://fonts.googleapis.com/css?family=Work+Sans:200,400,700' rel='stylesheet' type='text/css'>
+<link rel='stylesheet' type='text/css' href='css/look.css'/>
+<script src="https://code.jquery.com/jquery-2.2.2.min.js"></script>
+<script src="https://d3js.org/d3.v3.min.js"></script>
+<script src="js/look.js"></script>
+<title>look.js</title>
+</head>
+<body>
+	<div class="time"></div>
+	<div class="control-panel">
+		<div class="control-element" id="resolution">
+			<div class="label">resolution:</div>
+			<div class="value">hours</div>
+		</div>
+	</div>
+	<div class="howto-panel">
+		<div class="howto-element">
+			<div id="howto-h" class="label"><span class="button">h</span></div>
+			<div class="value">help menu</div>
+		</div>
+		<div class="howto-element">
+			<div id="howto-left" class="label"><span class="button">&#8592;</span></div>
+			<div class="value">step backwards</div>
+		</div>
+		<div class="howto-element">
+			<div id="howto-right" class="label"><span class="button">&#8594;</span></div>
+			<div class="value">step forward</div>
+		</div>
+		<div class="howto-element">
+			<div id="howto-r" class="label"><span class="button">r</span></div>
+			<div class="value">reset time</div>
+		</div>
+		<div class="howto-element">
+			<div id="howto-space" class="label"><span class="button">space</span></div>
+			<div class="value">auto play</div>
+		</div>
+	</div>
+	<svg id="degree-dist"></svg>
+	<svg id="weight-dist"></svg>
+
+	<div class="dnd">
+		<div class="message">Drop file to upload</div>
+		<div class="progress-bar"></div>
+	</div>
+	<div class="help">
+		<div class="box">
+			<div class="content">
+				<strong>look.js</strong><br><br>
+				To load and parse a network for display, simply drag and drop an edge list on the page. The edge list must be of the format "<pre>source target timestamp</pre>" (columns separated by spaces), where <pre>source</pre> and <pre>target</pre> denote the label of the corresponding nodes and <pre>timestamp</pre> is the UNIX timestamp of time instance when the link is active.<br><br>
+
+				The network is aggregated in time bins, the available bin sizes are 5 minutes, 1 hour and 1 day. By clicking on the current bin size, you can change the resolution.<br><br>
+				
+				You can navigate through the network in time, use the arrow keys <span class='inline-button'>&#8592;</span>
+				and <span class='inline-button'>&#8594;</span>. Automatic time evolution can be toggled with <span class='inline-button'>space</span>, time is set to zero with <span class='inline-button'>r</span>.<br><br>
+			</div>
+		</div>
+	</div>
+<script>
+	load("data/test.csv");
+</script>
+</body>
+</html>
