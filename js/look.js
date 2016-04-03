@@ -181,6 +181,16 @@ var Plot = {
       .text(yLabel);
   },
 
+  addText: function(svg, x, y, text, color) {
+    return svg.append("text")
+      .attr("class", "histogram-label")
+      .attr("stroke", color)
+      .attr("text-anchor", "end")
+      .attr("x", x)
+      .attr("y", y-5)
+      .text(text);
+  },
+
   verticalMarker: function(svg, scale, x) {
     return svg.append("line")
       .attr("x1", scale.x(x))
@@ -387,7 +397,9 @@ var StructuralDynamics = {
     var scale = this.scale = Plot.scale(this.data.links, "linlin");
     this.axes = Plot.axes(this.scale, "linlin", 4, 3);
     Plot.addAxes(this.svg, this.axes);
-    Plot.addLabels(this.svg, "time", "intensity");
+    Plot.addLabels(this.svg, "time", "rel. intensity");
+    Plot.addText(this.svg, UI.histogram.width-24, 0, "node", UI.histogram.color.nodes);
+    Plot.addText(this.svg, UI.histogram.width, 0, "link", UI.histogram.color.links);
 
     // line
     var line = d3.svg.line()

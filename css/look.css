@@ -182,6 +182,12 @@ strong {
 	font-size: 0.8em;
 }
 
+.histogram-label {
+	font-size: 11px;
+	font-weight: 200;
+	cursor: pointer;
+}
+
 #degree-dist {
 	position: fixed;
 	top: 20pt;
