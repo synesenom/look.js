@@ -28,6 +28,24 @@ var UI = {
   }
 };
 var AUTO_PLAY_DT_IN_MILLISEC = 100;
+var BIN = {
+  date: function (date, binType) {
+    switch (binType) {
+      case "days":
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      case "hours":
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours());
+      case "5 min":
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 5*Math.floor(date.getMinutes()/5));
+    }
+  },
+
+  msec: {
+    "5 min": 300000,
+    "hours": 3600000,
+    "days": 86400000
+  }
+};
 
 // Processes
 var Proc = {
@@ -373,6 +391,7 @@ var StructuralDynamics = {
 
     // line
     var line = d3.svg.line()
+      .interpolate("basis")
       .x(function(d, i) { return scale.x(i); })
       .y(function(d) { return scale.y(d) + 1; });
 
@@ -413,15 +432,7 @@ function bin(g, binType, toBuild) {
   (function binLoop() {
     for (var i=li; i<li+10000 && i<numLinks; i++) {
       var l = g.rawLinks[i];
-      var dt = l.date;
-      var bin = 0;
-      if (binType == "days" )
-        bin = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
-      if (binType == "hours" )
-        bin = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate(), dt.getHours());
-      if (binType == "5 min" ) {
-        bin = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate(), dt.getHours(), 5*Math.floor(dt.getMinutes()/5));
-      }
+      var bin = BIN.date(l.date, binType);
       if (!bins[bin]) {
         g.binnedLinks[bin] = [];
         bins[bin] = {};
@@ -449,6 +460,21 @@ function bin(g, binType, toBuild) {
           l.weight = parseFloat(bins[b][linkId]);
         }
       }
+
+      // create correct time bins (with empty bins)
+      var diff = BIN.msec[binType];
+      var timeMin = d3.min(d3.values(timeStamps));
+      var timeMax = d3.max(d3.values(timeStamps));
+      timeStamps = [];
+      for (var t=timeMin; t<timeMax; ) {
+        var bin = new Date(t);
+        timeStamps.push(bin);
+        if (!g.binnedLinks[bin]) {
+          g.binnedLinks[bin] = [];
+        }
+        t.setTime( t.getTime() + diff );
+      }
+
       g.time.min = 0;
       g.time.max = timeStamps.length-1;
       g.time.current = g.time.min;
@@ -568,7 +594,7 @@ function show() {
 
   // nodes
   var degree = DegreeDistribution.get(network);
-  var degMax = d3.max(d3.values(degree.values));
+  var degMax = Math.max(d3.max(d3.values(degree.values)), 1);
   svgNode.transition().duration(200)
     .attr("r", function(d){ return UI.node.r.min+UI.node.r.span*degree.values[d.index]/degMax; })
     .attr("opacity", function(d){ return degree.values[d.index] > 0 ? UI.node.opacity.active : UI.node.opacity.inactive; })
