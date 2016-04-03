@@ -17,10 +17,14 @@ var UI = {
   histogram: {
     width: 200,
     height: 60,
-    margin: {left: 40, right: 10, top: 16, bottom: 35},
+    margin: {left: 40, right: 15, top: 16, bottom: 35},
     barPadding: 1,
     xTicks: 8,
-    yTicks: 3
+    yTicks: 3,
+    color: {
+      links: "#999",
+      nodes: "#3399ff"
+    }
   }
 };
 var AUTO_PLAY_DT_IN_MILLISEC = 100;
@@ -112,21 +116,19 @@ var Plot = {
     }
   },
 
-  axes: function(scale, type) {
+  axes: function(scale, type, xTicks, yTicks) {
     var axes = {
       x: d3.svg.axis()
           .scale(scale.x)
-          .orient("bottom")
-          .ticks(UI.histogram.xTicks),
+          .orient("bottom"),
       y: d3.svg.axis()
           .scale(scale.y)
           .orient("left")
-          .ticks(UI.histogram.yTicks)
     };
     switch(type) {
       case "linlin":
-        axes.x.ticks(UI.histogram.xTicks);
-        axes.y.ticks(UI.histogram.yTicks);
+        axes.x.ticks(xTicks);
+        axes.y.ticks(yTicks);
         break;
       case "loglog":
         axes.x.ticks(0, ".1s");
@@ -156,9 +158,20 @@ var Plot = {
       .text(xLabel);
     svg.append("text")
       .attr("class", "y axis-label")
-      .attr("text-anchor", "end")
+      .attr("text-anchor", "begin")
       .attr("y", -5)
       .text(yLabel);
+  },
+
+  verticalMarker: function(svg, scale, x) {
+    return svg.append("line")
+      .attr("x1", scale.x(x))
+      .attr("y1", 1)
+      .attr("x2", scale.x(x))
+      .attr("y2", UI.histogram.height + 1)
+      .style("stroke-width", 1)
+      .style("stroke", "crimson")
+      .style("fill", "none");
   }
 };
 
@@ -195,13 +208,12 @@ var DegreeDistribution = {
     if (!this.svg) {
       // create svg and add elements
       this.svg = Plot.svg("#degree-dist");
-      this.scale = Plot.scale(data, "linlin");
-      this.axes = Plot.axes(this.scale, "linlin");
+      var scale = this.scale = Plot.scale(data, "linlin");
+      this.axes = Plot.axes(this.scale, "linlin", UI.histogram.xTicks, UI.histogram.yTicks);
       Plot.addAxes(this.svg, this.axes);
       Plot.addLabels(this.svg, "degree", "freq");
 
       // add plot
-      var scale = this.scale;
       this.svg.selectAll(".degree-dist-bar")
         .data(data)
         .enter().append("rect")
@@ -277,20 +289,19 @@ var WeightDistribution = {
     if (!this.svg) {
       // create svg and add elements
       this.svg = Plot.svg("#weight-dist");
-      this.scale = Plot.scale(data, "loglog");
-      this.axes = Plot.axes(this.scale, "loglog");
+      var scale = this.scale = Plot.scale(data, "loglog");
+      this.axes = Plot.axes(this.scale, "loglog", UI.histogram.xTicks, UI.histogram.yTicks);
       Plot.addAxes(this.svg, this.axes);
       Plot.addLabels(this.svg, "link weight", "freq");
 
       // add plot
-      var scale = this.scale;
-      this.line = d3.svg.line()
+      var line = this.line = d3.svg.line()
         .x(function(d, i) { return scale.x(i+1); })
         .y(function(d) { return d > 0 ? scale.y(d) + 1 : scale.y(1) + 1; })
         .interpolate('basis');
-      var line = this.line;
       this.svg.append("path")
         .attr("d", line(data))
+        .attr("stroke", "#3399ff")
         .attr("class", "weight-dist-line");
     } else {
       // update scale, axes and bars
@@ -315,6 +326,77 @@ var WeightDistribution = {
     }
   }
 }
+
+var StructuralDynamics = {
+  svg: null,
+  axes: {x: null, y: null},
+  scale: {x: null, y: null},
+  line: {},
+  data: {},
+  marker: null,
+
+  create: function(g) {
+    // get normalized data
+    this.data = {links: [], nodes: []};
+    for (var t=g.time.min; t<=g.time.max; t++) {
+      // links
+      this.data.links.push(g.binnedLinks[timeStamps[t]].length);
+
+      // nodes
+      var nodes = {};
+      g.binnedLinks[timeStamps[t]].forEach(function(d){
+        nodes[d.source.id] = 1;
+        nodes[d.target.id] = 1;
+      });
+      this.data.nodes.push(Object.keys(nodes).length);
+    }
+
+    // normalize data
+    max = {
+      links: d3.max(this.data.links),
+      nodes: d3.max(this.data.nodes)
+    };
+    for (var t=g.time.min; t<=g.time.max; t++) {
+      this.data.links[t] /= max.links;
+      this.data.nodes[t] /= max.nodes;
+    }
+
+    // create svg and add elements
+    if(this.svg) {
+      this.svg.remove();
+    }
+    this.svg = Plot.svg("#structural-dynamics");
+    var scale = this.scale = Plot.scale(this.data.links, "linlin");
+    this.axes = Plot.axes(this.scale, "linlin", 4, 3);
+    Plot.addAxes(this.svg, this.axes);
+    Plot.addLabels(this.svg, "time", "intensity");
+
+    // line
+    var line = d3.svg.line()
+      .x(function(d, i) { return scale.x(i); })
+      .y(function(d) { return scale.y(d) + 1; });
+
+    // add curves
+    for (var curve in this.data) {
+      var data = this.data[curve];
+      this.svg.append("path")
+        .attr("d", line(data))
+        .attr("stroke", UI.histogram.color[curve])
+        .attr("class", "structural-dynamics-" + curve);
+    }
+
+    this.marker = Plot.verticalMarker(this.svg, scale, 10);
+  },
+
+  show: function(t) {
+    // create svg if it doesn't exist
+    var scale = this.scale;
+    this.marker
+      .transition().duration(AUTO_PLAY_DT_IN_MILLISEC)
+      .attr("x1", scale.x(t))
+      .attr("x2", scale.x(t));
+  }
+};
 
 function bin(g, binType, toBuild) {
   $(".dnd").css("display", "block");
@@ -373,6 +455,11 @@ function bin(g, binType, toBuild) {
       g.links = g.binnedLinks[timeStamps[g.time.current]];
       $(".dnd").css("display", "none");
       $(".dnd > .message").text("");
+
+      // get structural dynamics
+      StructuralDynamics.create(network);
+
+      // build and show
       if(toBuild)
         build();
       show();
@@ -399,7 +486,7 @@ function load(file) {
     });
     network.rawLinks.sort(sortByDate);
     network.nodes = d3.values(nodesByName);
-    bin(network, "5 min", true);
+    bin(network, "hours", true);
   });
 }
 
@@ -487,6 +574,9 @@ function show() {
     .attr("opacity", function(d){ return degree.values[d.index] > 0 ? UI.node.opacity.active : UI.node.opacity.inactive; })
     .attr("fill", function(d){ return degree.values[d.index] > 0 ? UI.node.fill.active : UI.node.fill.inactive; });
   DegreeDistribution.show(degree.dist);
+
+  // other statistics
+  StructuralDynamics.show(network.time.current);
 }
 
 function step(direction) {
@@ -512,7 +602,7 @@ function step(direction) {
 
 function resize() {
   var width = $(window).width(),
-  height = 600;//$(window).height();
+  height = 600;
   svg
     .attr("width", width)
     .attr("height", height);

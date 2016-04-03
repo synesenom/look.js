@@ -210,11 +210,10 @@ strong {
 	right: 20pt;
 }
 path {
-	stroke: #3399ff;
-	stroke-width: 1pt;
+	stroke-width: 1px;
 	fill: none;
 }
-#dynamics {
+#structural-dynamics {
 	position: fixed;
 	top: 200pt;
 	right: 20pt;
