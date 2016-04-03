@@ -64,12 +64,20 @@ var force;
 var timeStamps = [];
 var svg, svgLink, svgNode, svgDegDist, svgWeightDist;
 
-// Sort functions
+// Util methods
 function sortInt(a, b) {
   return parseInt(a) - parseInt(b);
 }
+
 function sortByDate(a, b) {
   return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
+}
+
+function extend(data, length) {
+  if (data.length < length) {
+    for (var i=data.length; i<10; i++)
+      data.push(0);
+  }
 }
 
 var Plot = {
@@ -109,9 +117,7 @@ var Plot = {
       x: d3.svg.axis()
           .scale(scale.x)
           .orient("bottom")
-          .ticks(UI.histogram.xTicks)
-          .tickFormat(d3.format("d"))
-          .tickSubdivide(0),
+          .ticks(UI.histogram.xTicks),
       y: d3.svg.axis()
           .scale(scale.y)
           .orient("left")
@@ -179,6 +185,7 @@ var DegreeDistribution = {
     for (var i in degrees) {
       dist[degrees[i]]++;
     }
+    extend(dist, 10);
 
     return {values: degrees, dist: dist};
   },
@@ -392,7 +399,7 @@ function load(file) {
     });
     network.rawLinks.sort(sortByDate);
     network.nodes = d3.values(nodesByName);
-    bin(network, "days", true);
+    bin(network, "5 min", true);
   });
 }
 
@@ -578,14 +585,14 @@ function setupControlPanel() {
   // Resolution
   $("#resolution > .value").click(function(){
     switch ($(this).text()) {
-      case "hours":
-        bin(network, "5 min", false);
-        break;
       case "5 min":
+        bin(network, "hours", false);
+        break;
+      case "hours":
         bin(network, "days", false);
         break;
       case "days":
-        bin(network, "hours", false);
+        bin(network, "5 min", false);
         break;
       default:
     }
