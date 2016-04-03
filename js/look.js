@@ -12,7 +12,7 @@ var UI = {
     strokeWidth: {min: 1, span: 2},
   },
   force: {
-    linkStrength: {min: 0.1, span: 0.2}
+    linkStrength: {min: 0.3, span: 0.3}
   },
   histogram: {
     width: 200,
@@ -72,40 +72,7 @@ function sortByDate(a, b) {
   return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
 }
 
-// Histogram
-var Hist = {
-  histogram: function(samples) {
-    var hist = [];
-    if (samples instanceof Array) {
-      samples.forEach(function(s) {
-        var si = Math.round(s);
-        if (hist.length-1 < si)
-          for (var j=hist.length; j<si; j++)
-            hist.push(0);
-        hist[si-1]++;
-      });
-    } else {
-      for (var i in samples) {
-        s = samples[i];
-        if (hist.length-1 < s)
-          for (var j=hist.length; j<=s; j++)
-            hist.push(0);
-        hist[s]++;
-      }
-    }
-    if (hist.length < 10) {
-      for(var j=hist.length; j<10; j++)
-        hist.push(0);
-    }
-    var min = 1;
-    hist.forEach(function(h){
-      if (h < min && h > 0)
-        min = h;
-    });
-    var max = Math.max(...hist);
-    return {hist: hist, min: min, max: max};
-  },
-
+var Plot = {
   svg: function(id) {
     return d3.select(id)
       .attr("width", UI.histogram.width + UI.histogram.margin.left + UI.histogram.margin.right)
@@ -114,132 +81,232 @@ var Hist = {
       .attr("transform", "translate(" + UI.histogram.margin.left + "," + UI.histogram.margin.top + ")");
   },
 
-  bar: function(svgElem, barData) {
-    var x = d3.scale.linear()
-      .domain([0, barData.hist.length])
-      .range([0, UI.histogram.width]);
-    var y = d3.scale.linear()
-      .domain([0, barData.max])
-      .range([UI.histogram.height, 0]);
-
-    svgElem.selectAll(".bar")
-      .data(barData.hist)
-      .enter().append("rect")
-      .attr("class", "bar")
-      .attr("x", function(d, i) { return x(i) + UI.histogram.barPadding; })
-      .attr("y", function(d) { return y(d) + 1; })
-      .attr("width", UI.histogram.width / barData.hist.length - UI.histogram.barPadding)
-      .attr("height", function(d) { return UI.histogram.height - y(d); });
-
-    return {x: x, y: y};
-  },
-
-  line: function(svgElem, lineData) {
-    var x = d3.scale.log()
-      .domain([1, lineData.hist.length])
-      .range([0, UI.histogram.width]);
-    var y = d3.scale.log()
-      .domain([lineData.min, lineData.max])
-      .range([UI.histogram.height, 0]);
-
-    var line = d3.svg.line()
-      .x(function(d, i) { return x(i+1); })
-      .y(function(d) { return d > 0 ? y(d) + 1 : y(lineData.min) + 1; })
-      .interpolate('basis');
-    svgElem.append("path")
-      .attr("d", line(lineData.hist))
-      .attr("class", "path");
-
-      return {x: x, y: y};
-  },
-
-  axes: function(svgElem, scale, log) {
-    var xAxis = d3.svg.axis()
-      .scale(scale.x)
-      .orient("bottom");
-    var yAxis = d3.svg.axis()
-      .scale(scale.y)
-      .orient("left");
-    if (log) {
-      xAxis.ticks(0, ".1s");
-      yAxis.ticks(0, ".1s");
-    } else {
-      xAxis.ticks(UI.histogram.xTicks);
-      yAxis.ticks(UI.histogram.yTicks);
+  scale: function(data, type) {
+    switch(type) {
+      case "linlin":
+        return {
+          x: d3.scale.linear()
+            .domain([0, data.length])
+            .range([0, UI.histogram.width]),
+          y: d3.scale.linear()
+            .domain([0, d3.max(data)])
+            .range([UI.histogram.height, 0])
+        };
+      case "loglog":
+        return {
+          x: d3.scale.log()
+            .domain([1, data.length])
+            .range([0, UI.histogram.width]),
+          y: d3.scale.log()
+            .domain([1, d3.max(data)])
+            .range([UI.histogram.height, 0])
+        };
     }
-    svgElem.append("g")
-      .attr("class", "axis")
-      .attr("transform", "translate(0," + (UI.histogram.height+1) + ")")
-      .call(xAxis);
-    svgElem.append("g")
-      .attr("class", "axis")
-      .attr("transform", "translate(0," + 1 + ")")
-      .call(yAxis);
   },
 
-  labels: function(svgElem, xLabel, yLabel) {
-    svgElem.append("text")
-      .attr("class", "axis-label")
+  axes: function(scale, type) {
+    var axes = {
+      x: d3.svg.axis()
+          .scale(scale.x)
+          .orient("bottom")
+          .ticks(UI.histogram.xTicks)
+          .tickFormat(d3.format("d"))
+          .tickSubdivide(0),
+      y: d3.svg.axis()
+          .scale(scale.y)
+          .orient("left")
+          .ticks(UI.histogram.yTicks)
+    };
+    switch(type) {
+      case "linlin":
+        axes.x.ticks(UI.histogram.xTicks);
+        axes.y.ticks(UI.histogram.yTicks);
+        break;
+      case "loglog":
+        axes.x.ticks(0, ".1s");
+        axes.y.ticks(0, ".1s");
+        break;
+    }
+    return axes;
+  },
+
+  addAxes: function(svg, axes) {
+    svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + (UI.histogram.height+1) + ")")
+      .call(axes.x);
+    svg.append("g")
+      .attr("class", "y axis")
+      .attr("transform", "translate(0," + 1 + ")")
+      .call(axes.y);
+  },
+
+  addLabels: function(svg, xLabel, yLabel) {
+    svg.append("text")
+      .attr("class", "x axis-label")
       .attr("text-anchor", "end")
       .attr("x", UI.histogram.width)
       .attr("y", UI.histogram.height + 30)
       .text(xLabel);
-    svgElem.append("text")
-      .attr("class", "axis-label")
+    svg.append("text")
+      .attr("class", "y axis-label")
       .attr("text-anchor", "end")
       .attr("y", -5)
       .text(yLabel);
   }
-}
+};
 
-// Graph properties
-function getDegrees(g) {
-  var degrees = {};
-  for (var i = 0; i < g.nodes.length; i++) {
-    degrees[i] = 0;
-  };
-  g.links.forEach(function (d) {
-    degrees[d.source.index]++;
-    degrees[d.target.index]++;
-  });
+var DegreeDistribution = {
+  svg: null,
+  axes: {x: null, y: null},
+  scale: {x: null, y: null},
 
-  var dmax = 1;
-  for (i = 0; i < g.nodes.length; i++) {
-    if (degrees[i] > dmax)
-      dmax = degrees[i];
-  };
-  return {deg: degrees, max: dmax};
-}
-function getLinkWeights(g) {
-  var weights = [];
-  for (var i = 0; i<g.links.length; i++) {
-    weights.push(g.links[i].weight);
+  get: function(g) {
+    // get degrees
+    var degrees = {};
+    for (var i = 0; i < g.nodes.length; i++) {
+      degrees[i] = 0;
+    }
+    g.links.forEach(function (d) {
+      degrees[d.source.index]++;
+      degrees[d.target.index]++;
+    });
+
+    // make histogram
+    var dist = [];
+    var xmax = d3.max(d3.values(degrees));
+    for (var i=0; i<xmax+1; i++) dist.push(0);
+    for (var i in degrees) {
+      dist[degrees[i]]++;
+    }
+
+    return {values: degrees, dist: dist};
+  },
+
+  show: function(data) {
+    // create svg if it doesn't exist
+    if (!this.svg) {
+      // create svg and add elements
+      this.svg = Plot.svg("#degree-dist");
+      this.scale = Plot.scale(data, "linlin");
+      this.axes = Plot.axes(this.scale, "linlin");
+      Plot.addAxes(this.svg, this.axes);
+      Plot.addLabels(this.svg, "degree", "freq");
+
+      // add plot
+      var scale = this.scale;
+      this.svg.selectAll(".degree-dist-bar")
+        .data(data)
+        .enter().append("rect")
+        .attr("class", "degree-dist-bar")
+        .attr("x", function(d, i) { return scale.x(i) + UI.histogram.barPadding; })
+        .attr("y", function(d) { return scale.y(d) + 1; })
+        .attr("width", UI.histogram.width / data.length - UI.histogram.barPadding)
+        .attr("height", function(d) { return UI.histogram.height - scale.y(d); });
+    } else {
+      // update scale, axes and bars
+      var scale = {
+        x: this.scale.x.domain([0, data.length]),
+        y: this.scale.y.domain([0, d3.max(data)])
+      };
+      var axes = this.axes;
+      this.svg.select(".x.axis")
+        .transition().duration(AUTO_PLAY_DT_IN_MILLISEC)
+        .call(axes.x);
+      this.svg.select(".y.axis")
+        .transition().duration(AUTO_PLAY_DT_IN_MILLISEC)
+        .call(axes.y);
+
+      var bars = this.svg.selectAll(".degree-dist-bar")
+        .data(data);
+      bars.enter().append("rect")
+        .attr("class", "degree-dist-bar");
+      bars
+        .transition().duration(AUTO_PLAY_DT_IN_MILLISEC)
+        .attr("x", function(d, i) { return scale.x(i) + UI.histogram.barPadding; })
+        .attr("y", function(d) { return scale.y(d) + 1; })
+        .attr("width", UI.histogram.width / data.length - UI.histogram.barPadding)
+        .attr("height", function(d) { return UI.histogram.height - scale.y(d); })
+      bars.exit()
+        .transition().duration(AUTO_PLAY_DT_IN_MILLISEC)
+        .attr("height", 0)
+        .remove();
+    }
   }
-  return {weights: weights, min: Math.min(...weights), max: Math.max(...weights)};
-}
+};
 
-function degreeDistribution(degrees) {
-  var h = Hist.histogram(degrees);
+var WeightDistribution = {
+  svg: null,
+  axes: {x: null, y: null},
+  scale: {x: null, y: null},
+  line: null,
 
-  if (svgDegDist != null)
-    svgDegDist.remove();
-  svgDegDist = Hist.svg("#degree-dist");
+  get: function(g) {
+    // get weights
+    var weights = [];
+    for (var i = 0; i<g.links.length; i++) {
+      weights.push(g.links[i].weight);
+    }
 
-  scale = Hist.bar(svgDegDist, h);
-  Hist.axes(svgDegDist, scale, false);
-  Hist.labels(svgDegDist, "degree", "freq");
-}
+    // make histogram
+    var dist = []
+    var xmax = d3.max(weights);
+    for (var i=0; i<xmax; i++) dist.push(0);
+    for (var i=0; i<weights.length; i++) {
+      dist[weights[i]-1]++;
+    }
 
-function weightDistribution(weights) {
-  var h = Hist.histogram(weights);
+    // expand if necessary
+    if (dist.length < 10) {
+      for (var i=dist.length; i<10; i++)
+        dist.push(0);
+    }
 
-  if (svgWeightDist != null)
-    svgWeightDist.remove();
-  svgWeightDist = Hist.svg("#weight-dist");
+    return {values: weights, dist: dist};
+  },
 
-  scale = Hist.line(svgWeightDist, h);
-  Hist.axes(svgWeightDist, scale, true);
-  Hist.labels(svgWeightDist, "link weight", "freq");
+  show: function(data) {
+    // create svg if it doesn't exist
+    if (!this.svg) {
+      // create svg and add elements
+      this.svg = Plot.svg("#weight-dist");
+      this.scale = Plot.scale(data, "loglog");
+      this.axes = Plot.axes(this.scale, "loglog");
+      Plot.addAxes(this.svg, this.axes);
+      Plot.addLabels(this.svg, "link weight", "freq");
+
+      // add plot
+      var scale = this.scale;
+      this.line = d3.svg.line()
+        .x(function(d, i) { return scale.x(i+1); })
+        .y(function(d) { return d > 0 ? scale.y(d) + 1 : scale.y(1) + 1; })
+        .interpolate('basis');
+      var line = this.line;
+      this.svg.append("path")
+        .attr("d", line(data))
+        .attr("class", "weight-dist-line");
+    } else {
+      // update scale, axes and bars
+      var scale = {
+        x: this.scale.x.domain([1, data.length]),
+        y: this.scale.y.domain([1, d3.max(data)])
+      };
+      var axes = this.axes;
+      this.svg.select(".x.axis")
+        .transition().duration(AUTO_PLAY_DT_IN_MILLISEC)
+        .call(axes.x);
+      this.svg.select(".y.axis")
+        .transition().duration(AUTO_PLAY_DT_IN_MILLISEC)
+        .call(axes.y);
+
+      var line = this.line
+        .x(function(d, i) { return scale.x(i+1); })
+        .y(function(d) { return d > 0 ? scale.y(d) + 1 : scale.y(1) + 1; });
+      this.svg.select(".weight-dist-line")
+        .transition().duration(AUTO_PLAY_DT_IN_MILLISEC)
+        .attr("d", line(data));
+    }
+  }
 }
 
 function bin(g, binType, toBuild) {
@@ -264,8 +331,7 @@ function bin(g, binType, toBuild) {
       if (binType == "hours" )
         bin = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate(), dt.getHours());
       if (binType == "5 min" ) {
-        var m = dt.getMinutes();
-        bin = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate(), dt.getHours(), 5*Math.floor(m/5));
+        bin = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate(), dt.getHours(), 5*Math.floor(dt.getMinutes()/5));
       }
       if (!bins[bin]) {
         g.binnedLinks[bin] = [];
@@ -326,7 +392,7 @@ function load(file) {
     });
     network.rawLinks.sort(sortByDate);
     network.nodes = d3.values(nodesByName);
-    bin(network, "hours", true);
+    bin(network, "days", true);
   });
 }
 
@@ -338,14 +404,15 @@ function build() {
   resize();
 
   // Start the force layout.
-  var w = getLinkWeights(network);
+  var weight = WeightDistribution.get(network);
+  var weightMax = d3.max(weight.values);
   force
       .nodes(network.nodes)
       .links(network.links)
       .on("tick", tick)
       .charge(-150)
       .linkDistance(10)
-      .linkStrength(function(d){ return UI.force.linkStrength.min+UI.force.linkStrength.span*(d.weight/w.max); })
+      .linkStrength(function(d){ return UI.force.linkStrength.min+UI.force.linkStrength.span*(d.weight/weightMax); })
       .gravity(0.4)
       .friction(0.4)
       .start();
@@ -357,11 +424,10 @@ function build() {
       .data(network.links)
     .enter().append("line")
       .attr("class", "link")
-      .attr("stroke-opacity", function(d){ return UI.link.strokeOpacity.min+UI.link.strokeOpacity.span*(d.weight/w.max); })
-      .attr("stroke-width", function(d){ return UI.link.strokeWidth.min+UI.link.strokeWidth.span*(d.weight/w.max); });
+      .attr("stroke-opacity", function(d){ return UI.link.strokeOpacity.min+UI.link.strokeOpacity.span*(d.weight/weightMax); })
+      .attr("stroke-width", function(d){ return UI.link.strokeWidth.min+UI.link.strokeWidth.span*(d.weight/weightMax); });
 
   // Create the node circles.
-  var deg = getDegrees(network);
   if(svgNode != null)
     svgNode.remove();
   svgNode = svg.selectAll(".node")
@@ -390,15 +456,16 @@ function show() {
                   + dt.toLocaleTimeString());
 
   // links
-  var w = getLinkWeights(network);
+  var weight = WeightDistribution.get(network);
+  var weightMax = d3.max(weight.values);
   svgLink = svgLink.data(network.links);
   svgLink.enter()
     .insert("line", ".node")
     .attr("class", "link")
-    .attr("stroke-opacity", function(d){ return UI.link.strokeOpacity.min+UI.link.strokeOpacity.span*(d.weight/w.max); })
-    .attr("stroke-width", function(d){ return UI.link.strokeWidth.min+UI.link.strokeWidth.span*(d.weight/w.max); });
+    .attr("stroke-opacity", function(d){ return UI.link.strokeOpacity.min+UI.link.strokeOpacity.span*(d.weight/weightMax); })
+    .attr("stroke-width", function(d){ return UI.link.strokeWidth.min+UI.link.strokeWidth.span*(d.weight/weightMax); });
   svgLink.exit().remove();
-  weightDistribution(w.weights);
+  WeightDistribution.show(weight.dist);
 
   force
     .nodes(network.nodes)
@@ -406,12 +473,13 @@ function show() {
     .start();
 
   // nodes
-  var deg = getDegrees(network);
+  var degree = DegreeDistribution.get(network);
+  var degMax = d3.max(d3.values(degree.values));
   svgNode.transition().duration(200)
-    .attr("r", function(d){ return UI.node.r.min+UI.node.r.span*deg.deg[d.index]/deg.max; })
-    .attr("opacity", function(d){ return deg.deg[d.index] > 0 ? UI.node.opacity.active : UI.node.opacity.inactive; })
-    .attr("fill", function(d){ return deg.deg[d.index] > 0 ? UI.node.fill.active : UI.node.fill.inactive; });
-  degreeDistribution(deg.deg);
+    .attr("r", function(d){ return UI.node.r.min+UI.node.r.span*degree.values[d.index]/degMax; })
+    .attr("opacity", function(d){ return degree.values[d.index] > 0 ? UI.node.opacity.active : UI.node.opacity.inactive; })
+    .attr("fill", function(d){ return degree.values[d.index] > 0 ? UI.node.fill.active : UI.node.fill.inactive; });
+  DegreeDistribution.show(degree.dist);
 }
 
 function step(direction) {

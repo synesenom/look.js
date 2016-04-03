@@ -27,7 +27,7 @@ body {
 	position: fixed;
 	float: left;
 	width: 126pt;
-	margin: 10pt;
+	margin: 20pt;
 	border: 0pt solid #3399ff;
 	font-size: 10pt;
 	font-weight: 400;
@@ -59,10 +59,10 @@ body {
 
 .howto-panel {
 	position: fixed;
-	bottom: 20pt;
+	bottom: 0pt;
 	float: left;
 	width: 126pt;
-	margin: 10pt;
+	margin: 20pt;
 	border: 0pt solid #3399ff;
 	font-size: 10pt;
 	font-weight: 400;
@@ -183,9 +183,12 @@ strong {
 }
 
 #degree-dist {
-	position: absolute;
-	top: 14pt;
+	position: fixed;
+	top: 20pt;
 	right: 20pt;
+}
+.degree-dist-bar {
+	fill: #3399ff;
 }
 .axis path,
 .axis line {
@@ -200,16 +203,19 @@ strong {
 .axis-label {
 	font-size: 9pt;
 }
-.bar {
-	fill: #3399ff;
-}
+
 #weight-dist {
-	position: absolute;
-	top: 100pt;
+	position: fixed;
+	top: 110pt;
 	right: 20pt;
 }
-.path {
+path {
 	stroke: #3399ff;
 	stroke-width: 1pt;
 	fill: none;
+}
+#dynamics {
+	position: fixed;
+	top: 200pt;
+	right: 20pt;
 }
