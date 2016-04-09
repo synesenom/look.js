@@ -14,6 +14,9 @@ body {
 	stroke: #ffffff;
 	stroke-width: 1px;
 }
+.node .infected {
+	fill: "crimson";
+}
 .link {
 	stroke: #999;
 }
@@ -55,6 +58,46 @@ body {
 .control-element .value:hover {
 	color: white;
 	background-color: #3399ff;
+}
+
+.settings {
+	position: relative;
+	width: 120pt;
+	height: 0pt;
+	padding-top: 8pt;
+	overflow: hidden;
+}
+.settings-element {
+	position: relative;
+	display: block;
+	clear: both;
+	width: 120pt;
+}
+.settings-element .label {
+	position: relative;
+	float: left;
+	padding: 2pt;
+}
+.settings-element .value {
+	position: relative;
+	float: right;
+}
+.settings-element .button {
+	float: left;
+	padding: 2pt 4pt;
+	margin-left: 1pt;
+	margin-right: 10pt;
+	margin-top: 5pt;
+	cursor: pointer;
+	background-color: #f7f7ff;
+	border-radius: 2pt;
+	border: 1px solid #3399ff;
+	font-size: 8pt;
+	color: black;
+}
+.settings-element .button:hover {
+	background-color: #3399ff;
+	color: white;
 }
 
 .howto-panel {

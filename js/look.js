@@ -1,7 +1,7 @@
 // Constants
 var PARSE_CHUNK_SIZE = 10000;
 var WEEKDAYS = {0: "Sun", 1: "Mon", 2: "Tue", 3: "Wed", 4: "Thu", 5: "Fri", 6: "Sat"};
-var AUTO_PLAY_DT_IN_MILLISEC = 100;
+var AUTO_PLAY_DT_IN_MILLISEC = 200;
 var BINS = {
   BIN_5_MINS: { label: "5 mins", msec: 300000 },
   BIN_HOUR: {label: "hour", msec: 3600000},
@@ -21,7 +21,7 @@ var BINS = {
 
 
 function step(direction) {
-  prevIndex = NETWORK.time.current;
+  var prevTime = NETWORK.time.current;
   switch(direction) {
     case "forward":
       NETWORK.time.current = Math.min(NETWORK.time.current+1, NETWORK.time.max);
@@ -33,8 +33,8 @@ function step(direction) {
       NETWORK.time.current = NETWORK.time.min;
       break;
   }
-  if (NETWORK.time.current != prevIndex) {
-    NETWORK.links = NETWORK.binnedLinks[NETWORK.timeStamps[NETWORK.time.current]];
+  if (NETWORK.time.current != prevTime) {
+    NETWORK.links = NETWORK.binnedLinks[NETWORK.time.current];
     NETWORK.show();
   } else {
     Proc.off(Proc.AUTO_PLAY);
@@ -78,9 +78,10 @@ function help(action) {
 }
 
 
-function setupControlPanel() {
+function control() {
   // Resolution
   $("#resolution > .value").click(function(){
+    Proc.off(Proc.AUTO_PLAY);
     switch ($(this).text()) {
       case BINS.BIN_5_MINS.label:
         NETWORK.bin(BINS.BIN_HOUR, false);
@@ -95,7 +96,31 @@ function setupControlPanel() {
     }
   });
 
-  // Howto
+  // Dynamics
+  /*
+  $("#dynamics > .value").click(function(){
+    if (!Proc.is(Proc.DYNAMICS)) {
+      $("#dynamics > .value").text("sis");
+      $("#dynamics > .settings").animate({"height": "51pt"}, 200);
+      Proc.on(Proc.DYNAMICS);
+    } else {
+      $("#dynamics > .value").text("none");
+      $("#dynamics > .settings").animate({"height": "0pt"}, 200);
+      Proc.off(Proc.DYNAMICS);
+    }
+  });
+*/
+
+  // Help
+  $(".help").click(function(){
+    if (Proc.is(Proc.HELP_MENU)) {
+      Proc.off(Proc.HELP_MENU);
+      help("hide");
+    }
+  });
+}
+
+function howto() {
   $("#howto-h").click(function(){
     Proc.on(Proc.HELP_MENU);
     help("show");
@@ -117,17 +142,9 @@ function setupControlPanel() {
     if (Proc.is(Proc.AUTO_PLAY))
       autoPlay();
   });
-
-  // Help
-  $(".help").click(function(){
-    if (Proc.is(Proc.HELP_MENU)) {
-      Proc.off(Proc.HELP_MENU);
-      help("hide");
-    }
-  });
 }
 
-function setupKeys() {
+function keys() {
   $(document).keydown(function(e) {
     if(!Proc.is(Proc.BINNING) && !Proc.is(Proc.PARSE)) {
       switch(e.which) {
@@ -174,7 +191,7 @@ function setupKeys() {
   });
 }
 
-function setupDragAndDrop() {
+function dragAndDrop() {
   var dndLastTarget = null;
   var dnd = {'overlay': $(".dnd"),
              'message': $(".dnd > .message"),
@@ -228,6 +245,7 @@ function setupDragAndDrop() {
       reader.onload = function(e) {
         dnd.progressBar.css("width", "0px");
         dnd.message.text("Parsing network");
+        Proc.off(Proc.AUTO_PLAY);
         NETWORK.parse(reader.result);
       };
     }
@@ -236,9 +254,10 @@ function setupDragAndDrop() {
 
 // Method to call after page loaded
 $(function () {
-  setupKeys();
-  setupControlPanel();
-  setupDragAndDrop();
+  keys();
+  control();
+  howto();
+  dragAndDrop();
   window.onresize = resize;
   NETWORK.load("data/test.csv");
 });

@@ -283,11 +283,11 @@ var StructuralDynamics = {
     this.data = {links: [], nodes: []};
     for (var t=g.time.min; t<=g.time.max; t++) {
       // links
-      this.data.links.push(g.binnedLinks[g.timeStamps[t]].length);
+      this.data.links.push(g.binnedLinks[t].length);
 
       // nodes
       var nodes = {};
-      g.binnedLinks[g.timeStamps[t]].forEach(function(d){
+      g.binnedLinks[t].forEach(function(d){
         nodes[d.source.id] = 1;
         nodes[d.target.id] = 1;
       });

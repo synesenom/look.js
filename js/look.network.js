@@ -25,50 +25,50 @@ var NETWORK = {
 
     if (this.svg.graph != null)
         this.svg.graph.remove();
-      this.svg.graph = d3.select("body").append("svg");
-      this.force = d3.layout.force();
-      resize();
+    this.svg.graph = d3.select("body").append("svg");
+    this.force = d3.layout.force();
+    resize();
 
-      // Start the force layout.
-      var weight = WeightDistribution.get(this);
-      var weightMax = d3.max(weight.values);
-      this.force
-          .on("tick", tick)
-          .charge(-150)
-          .linkDistance(10)
-          .gravity(0.4)
-          .friction(0.4)
-          .start();
+    // Start the force layout.
+    var weight = WeightDistribution.get(this);
+    var weightMax = d3.max(weight.values);
+    this.force
+        .on("tick", tick)
+        .charge(-150)
+        .linkDistance(20)
+        .gravity(0.4)
+        .friction(0.4)
+        .start();
 
-      // Create the link lines.
-      if(this.svg.links != null)
-        this.svg.links.remove();
-      this.svg.links = this.svg.graph.selectAll(".link")
-          .data(net.links)
-        .enter().append("line")
-          .attr("class", "link")
-          .attr("stroke-opacity", function(d){ return UI.network.link.strokeOpacity.min+UI.network.link.strokeOpacity.span*(d.weight/weightMax); })
-          .attr("stroke-width", UI.network.link.strokeWidth);
+    // Create the link lines.
+    if(this.svg.links != null)
+      this.svg.links.remove();
+    this.svg.links = this.svg.graph.selectAll(".link")
+        .data(net.links)
+      .enter().append("line")
+        .attr("class", "link")
+        .attr("stroke-opacity", function(d){ return UI.network.link.strokeOpacity.min+UI.network.link.strokeOpacity.span*(d.weight/weightMax); })
+        .attr("stroke-width", UI.network.link.strokeWidth);
 
-      // Create the node circles.
-      if(this.svg.nodes != null)
-        this.svg.nodes.remove();
-      this.svg.nodes = this.svg.graph.selectAll(".node")
-          .data(net.nodes)
-        .enter().append("circle")
-          .attr("class", "node")
-          .call(net.force.drag);
+    // Create the node circles.
+    if(this.svg.nodes != null)
+      this.svg.nodes.remove();
+    this.svg.nodes = this.svg.graph.selectAll(".node")
+        .data(net.nodes)
+      .enter().append("circle")
+        .attr("class", "node")
+        .call(net.force.drag);
 
-      function tick() {
-        net.svg.links
-          .attr("x1", function(d) { return d.source.x; })
-          .attr("y1", function(d) { return d.source.y; })
-          .attr("x2", function(d) { return d.target.x; })
-          .attr("y2", function(d) { return d.target.y; });
-        net.svg.nodes
-          .attr("cx", function(d) { return d.x; })
-          .attr("cy", function(d) { return d.y; });
-      }
+    function tick() {
+      net.svg.links
+        .attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+      net.svg.nodes
+        .attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; });
+    }
   },
 
   // Loads a network file.
@@ -130,7 +130,6 @@ var NETWORK = {
     })();
   },
 
-  // Bins network links into the given time bin.
   bin: function(binType, toBuild) {
     var net = this;
 
@@ -138,8 +137,7 @@ var NETWORK = {
     $(".dnd > .message").text("Binning links");
     $("#resolution > .value").text(binType.label);
     this.timeStamps = [];
-    this.binnedLinks = {};
-    newBinnedLinks = {};
+    this.binnedLinks = [];
     bins = {};
 
     var numLinks = this.rawLinks.length;
@@ -150,17 +148,16 @@ var NETWORK = {
         var l = net.rawLinks[i];
         var bin = BINS.date(l.date, binType);
         if (!bins[bin]) {
-          net.binnedLinks[bin] = [];
           bins[bin] = {};
           net.timeStamps.push(bin);
         }
         var linkId = l.link.source.id + "-" + l.link.target.id;
         if (!bins[bin][linkId]) {
-          bins[bin][linkId] = 1.0;
-          net.binnedLinks[bin].push(l.link);
+          bins[bin][linkId] = l.link;
+          bins[bin][linkId].weight = 1.0;
         }
         else
-          bins[bin][linkId]++;
+          bins[bin][linkId].weight++;
       }
       li += 10000;
       var percentLoaded = Math.round((li / numLinks) * 100);
@@ -169,32 +166,31 @@ var NETWORK = {
       if (li < numLinks) {
         setTimeout(binLoop, 10);
       } else {
-        for (var b in net.binnedLinks) {
-          for (var i=0; i<net.binnedLinks[b].length; i++) {
-            var l = net.binnedLinks[b][i];
-            var linkId = l.source.id + "-" + l.target.id;
-            l.weight = parseFloat(bins[b][linkId]);
-          }
-        }
-
-        // create correct time bins (with empty bins)
+        // Add links
         var diff = binType.msec;
         var timeMin = d3.min(d3.values(net.timeStamps));
         var timeMax = d3.max(d3.values(net.timeStamps));
         net.timeStamps = [];
-        for (var t=timeMin; t<timeMax; ) {
-          var bin = new Date(t);
-          net.timeStamps.push(bin);
-          if (!net.binnedLinks[bin]) {
-            net.binnedLinks[bin] = [];
-          }
-          t.setTime( t.getTime() + diff );
-        }
+        var binIndex = 0;
+        for (var t=timeMin; t<=timeMax; ) {
+          net.timeStamps.push(new Date(t));
 
+          // add links
+          net.binnedLinks.push([]);
+          for (var l in bins[t]) {
+            net.binnedLinks[binIndex].push(bins[t][l]);
+          }
+
+          t.setTime( t.getTime() + diff );
+          binIndex++;
+        }
+        bins = null;
+
+        // Set min/max and current time indices
         net.time.min = 0;
         net.time.max = net.timeStamps.length-1;
         net.time.current = net.time.min;
-        net.links = net.binnedLinks[net.timeStamps[net.time.current]];
+        net.links = net.binnedLinks[net.time.current];
         $(".dnd").css("display", "none");
         $(".dnd > .message").text("");
 
@@ -202,8 +198,7 @@ var NETWORK = {
         StructuralDynamics.create(net);
 
         // build and show
-        if(toBuild)
-          net.build();
+        net.build();
         net.show();
         Proc.off(Proc.BINNING);
       }

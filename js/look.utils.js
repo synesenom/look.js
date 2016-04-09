@@ -28,12 +28,14 @@ var Proc = {
   BINNING: 'binning',
   AUTO_PLAY: 'auto-play',
   HELP_MENU: 'help-menu',
+  DYNAMICS: 'dynamics',
 
   processes: {
-    'parsing': false,
+    'parse': false,
     'binning': false,
-    'autoplaying': false,
-    'help': false
+    'auto-play': false,
+    'help-menu': false,
+    'dynamics': false
   },
 
   on: function(proc) {
