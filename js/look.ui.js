@@ -13,7 +13,7 @@ var UI = {
       strokeWidth: 1.5,
     },
     force: {
-      linkStrength: {min: 0.3, span: 0.3}
+      linkStrength: 0.4
     }
   },
 

@@ -36,6 +36,7 @@ var NETWORK = {
         .on("tick", tick)
         .charge(-150)
         .linkDistance(20)
+        .linkStrength(UI.network.force.linkStrength)
         .gravity(0.4)
         .friction(0.4)
         .start();

@@ -1,6 +1,7 @@
 /**
  * This script contains objects responsible for various plots.
  */
+ var SAMPLE_NUMBER_MAX = 500;
 
 /**
  * Object that encapsulates methods generating several elements of a plot.
@@ -277,29 +278,36 @@ var StructuralDynamics = {
   line: {},
   data: {},
   marker: null,
+  sampleRate: 1,
 
   create: function(g) {
+    // sample rate (to avoid huge paths)
+    this.sampleRate = g.time.max > SAMPLE_NUMBER_MAX ? Math.ceil(g.time.max/SAMPLE_NUMBER_MAX) : 1;
+
     // get normalized data
     this.data = {links: [], nodes: []};
     for (var t=g.time.min; t<=g.time.max; t++) {
-      // links
-      this.data.links.push(g.binnedLinks[t].length);
+      if (t % this.sampleRate == 0) {
+        // links
+        this.data.links.push(g.binnedLinks[t].length);
 
-      // nodes
-      var nodes = {};
-      g.binnedLinks[t].forEach(function(d){
-        nodes[d.source.id] = 1;
-        nodes[d.target.id] = 1;
-      });
-      this.data.nodes.push(Object.keys(nodes).length);
+        // nodes
+        var nodes = {};
+        g.binnedLinks[t].forEach(function(d){
+          nodes[d.source.id] = 1;
+          nodes[d.target.id] = 1;
+        });
+        this.data.nodes.push(Object.keys(nodes).length);
+      }
     }
+    console.log(this.data);
 
     // normalize data
     max = {
       links: d3.max(this.data.links),
       nodes: d3.max(this.data.nodes)
     };
-    for (var t=g.time.min; t<=g.time.max; t++) {
+    for (var t=0; t<this.data.links.length; t++) {
       this.data.links[t] /= max.links;
       this.data.nodes[t] /= max.nodes;
     }
@@ -331,15 +339,15 @@ var StructuralDynamics = {
         .attr("class", "structural-dynamics-" + curve);
     }
 
-    this.marker = Plot.verticalMarker(this.svg, scale, 10);
+    // marker
+    this.marker = Plot.verticalMarker(this.svg, scale, 0);
   },
 
   show: function(t) {
-    var scale = this.scale;
+    var x = this.scale.x(t/this.sampleRate);
     this.marker
-      .transition().duration(AUTO_PLAY_DT_IN_MILLISEC)
-      .attr("x1", scale.x(t))
-      .attr("x2", scale.x(t));
+      .attr("x1", x)
+      .attr("x2", x);
   }
 };
 

@@ -1,7 +1,7 @@
 // Constants
 var PARSE_CHUNK_SIZE = 10000;
 var WEEKDAYS = {0: "Sun", 1: "Mon", 2: "Tue", 3: "Wed", 4: "Thu", 5: "Fri", 6: "Sat"};
-var AUTO_PLAY_DT_IN_MILLISEC = 200;
+var AUTO_PLAY_DT_IN_MILLISEC = 100;
 var BINS = {
   BIN_5_MINS: { label: "5 mins", msec: 300000 },
   BIN_HOUR: {label: "hour", msec: 3600000},
