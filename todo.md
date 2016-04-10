@@ -6,4 +6,3 @@
 - dynamics on the network
 
 # bugs
-- slow for small bins
