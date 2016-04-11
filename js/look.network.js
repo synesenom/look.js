@@ -79,19 +79,34 @@ var NETWORK = {
     dsv(file, function(error, data) {
       if (error) throw error;
 
-      // fill daily aggregates
+      d3.select(".dnd").style("display", "block");
+      d3.select(".dnd > .message").text("Load network");
+      d3.select(".dnd > .progress-bar").style("width", 0);
+      var li = 0;
       var nodesByName = {};
-      data.forEach(function(d) {
-        var dt = new Date(d.timestamp*1000);
-        var s = d.source;
-        var t = d.target;
-        var l = {source: nodesByName[s] || (nodesByName[s] = {id: s}),
-                 target: nodesByName[t] || (nodesByName[t] = {id: t})};
-        net.rawLinks.push({'date': dt, 'link': l});
-      });
-      net.rawLinks.sort(Utils.sortByDate);
-      net.nodes = d3.values(nodesByName);
-      net.bin(BINS.BIN_5_MINS, true);
+      var numLines = data.length;
+      var rawLinks = [];
+      (function loadLoop() {
+        for (var i=li; i<li+PARSE_CHUNK_SIZE && i<numLines; i++) {
+          var dt = new Date(data[i].timestamp*1000);
+          var s = data[i].source;
+          var t = data[i].target;
+          var l = {source: nodesByName[s] || (nodesByName[s] = {id: s}),
+                   target: nodesByName[t] || (nodesByName[t] = {id: t})};
+          net.rawLinks.push({'date': dt, 'link': l});
+        }
+        li += PARSE_CHUNK_SIZE;
+        var percentLoaded = Math.round((li / numLines) * 100);
+        if (percentLoaded < 100)
+          d3.select(".dnd > .progress-bar").style("width", percentLoaded*2.5 + "px");
+        if (li < numLines) {
+          setTimeout(loadLoop, 10);
+        } else {
+          net.rawLinks.sort(Utils.sortByDate);
+          net.nodes = d3.values(nodesByName);
+          net.bin(BINS.BIN_5_MINS, true);
+        }
+      })();
     });
   },
 

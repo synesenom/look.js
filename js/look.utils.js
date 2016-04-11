@@ -28,6 +28,7 @@ var Proc = {
   BINNING: 'binning',
   AUTO_PLAY: 'auto-play',
   HELP_MENU: 'help-menu',
+  URL_SOURCE: 'url-source',
   DYNAMICS: 'dynamics',
 
   processes: {

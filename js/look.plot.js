@@ -181,7 +181,7 @@ var DegreeDistribution = {
         .attr("x", function(d, i) { return scale.x(i) + UI.histogram.barPadding; })
         .attr("y", function(d) { return scale.y(d) + 1; })
         .attr("width", UI.histogram.width / data.length - UI.histogram.barPadding)
-        .attr("height", function(d) { return UI.histogram.height - scale.y(d); })
+        .attr("height", function(d) { return UI.histogram.height - scale.y(d); });
       bars.exit()
         .transition().duration(AUTO_PLAY_DT_IN_MILLISEC)
         .attr("height", 0)
