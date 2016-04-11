@@ -42,7 +42,7 @@ function step(direction) {
 }
 
 function resize() {
-  var width = $(window).width(),
+  var width = window.innerWidth,
   height = 600;
   NETWORK.svg.graph
     .attr("width", width)
@@ -63,15 +63,16 @@ function autoPlay() {
 function help(action) {
   switch(action){
     case "show":
-      $(".help").css("display", "block").animate({
-        opacity: 1
-      }, 500);
+      d3.select(".help").style("display", "block")
+        .transition().duration(500)
+        .style("opacity", 1);
       break;
     case "hide":
-      $(".help").animate({
-        opacity: 0
-      }, 500, function() {
-        $(this).css("display", "none");
+      d3.select(".help")
+        .transition().duration(500)
+        .style("opacity", 0)
+        .each("end", function() {
+        d3.select(".help").style("display", "none");
       });
       break;
   }
@@ -80,9 +81,9 @@ function help(action) {
 
 function control() {
   // Resolution
-  $("#resolution > .value").click(function(){
+  d3.select("#resolution > .value").on("click", function(){
     Proc.off(Proc.AUTO_PLAY);
-    switch ($(this).text()) {
+    switch (d3.select("#resolution > .value").text()) {
       case BINS.BIN_5_MINS.label:
         NETWORK.bin(BINS.BIN_HOUR, false);
         break;
@@ -98,21 +99,25 @@ function control() {
 
   // Dynamics
   /*
-  $("#dynamics > .value").click(function(){
+  d3.select("#dynamics > .value").on("click", function(){
     if (!Proc.is(Proc.DYNAMICS)) {
-      $("#dynamics > .value").text("sis");
-      $("#dynamics > .settings").animate({"height": "51pt"}, 200);
+      d3.select("#dynamics > .value").text("sis");
+      d3.select("#dynamics > .settings")
+        .transition().duration(200)
+        .style("height", 51);
       Proc.on(Proc.DYNAMICS);
     } else {
-      $("#dynamics > .value").text("none");
-      $("#dynamics > .settings").animate({"height": "0pt"}, 200);
+      d3.select("#dynamics > .value").text("none");
+      d3.select("#dynamics > .settings")
+        .transition().duration(200)
+        .style("height", 0);
       Proc.off(Proc.DYNAMICS);
     }
   });
 */
 
   // Help
-  $(".help").click(function(){
+  d3.select(".help").on("click", function(){
     if (Proc.is(Proc.HELP_MENU)) {
       Proc.off(Proc.HELP_MENU);
       help("hide");
@@ -121,23 +126,23 @@ function control() {
 }
 
 function howto() {
-  $("#howto-h").click(function(){
+  d3.select("#howto-h").on("click", function(){
     Proc.on(Proc.HELP_MENU);
     help("show");
   });
-  $("#howto-left").click(function(){
+  d3.select("#howto-left").on("click", function(){
     Proc.off(Proc.AUTO_PLAY);
     step("backward");
   });
-  $("#howto-right").click(function(){
+  d3.select("#howto-right").on("click", function(){
     Proc.off(Proc.AUTO_PLAY);
     step("forward");
   });
-  $("#howto-r").click(function(){
+  d3.select("#howto-r").on("click", function(){
     Proc.off(Proc.AUTO_PLAY);
     step("reset");
   });
-  $("#howto-space").click(function(){
+  d3.select("#howto-space").on("click", function(){
     Proc.turn(Proc.AUTO_PLAY);
     if (Proc.is(Proc.AUTO_PLAY))
       autoPlay();
@@ -145,9 +150,9 @@ function howto() {
 }
 
 function keys() {
-  $(document).keydown(function(e) {
+  d3.select(document).on("keydown", function() {
     if(!Proc.is(Proc.BINNING) && !Proc.is(Proc.PARSE)) {
-      switch(e.which) {
+      switch(d3.event.which) {
         // right arrow: increase time index
         case 39:
           Proc.off(Proc.AUTO_PLAY);
@@ -193,38 +198,42 @@ function keys() {
 
 function dragAndDrop() {
   var dndLastTarget = null;
-  var dnd = {'overlay': $(".dnd"),
-             'message': $(".dnd > .message"),
-             'progressBar': $(".dnd > .progress-bar")}
+  var dnd = {'overlay': d3.select(".dnd"),
+             'message': d3.select(".dnd > .message"),
+             'progressBar': d3.select(".dnd > .progress-bar")}
   // Drag enter
-  $(window).bind("dragenter", function(e){
+  d3.select(window).on("dragenter", function(){
+    var e = d3.event;
     e.preventDefault();
     e.stopPropagation();
     dndLastTarget = e.target;
-    dnd.overlay.css("display", "block");
+    dnd.overlay.style("display", "block");
     dnd.message.text("Drop file to upload");
-    dnd.progressBar.css("width", "0px");
+    dnd.progressBar.style("width", "0px");
   });
 
   // Drag over
-  $(window).on("dragover", function(e){
+  d3.select(window).on("dragover", function(){
+    var e = d3.event;
     e.preventDefault();
     e.stopPropagation();
     dndLastTarget = e.target;
   });
 
   // Drag leave
-  $(window).bind("dragleave", function(e){
+  d3.select(window).on("dragleave", function(){
+    var e = d3.event;
     e.preventDefault();
     e.stopPropagation();
     if(e.target === dndLastTarget) {
-      dnd.overlay.css("display", "none");
+      dnd.overlay.style("display", "none");
       dnd.message.text();
     }
   });
 
   // Drop
-  $(window).bind("drop", function(e){
+  d3.select(window).on("drop", function(){
+    var e = d3.event;
     e.preventDefault();
     e.stopPropagation();
 
@@ -235,15 +244,15 @@ function dragAndDrop() {
         if (e.lengthComputable) {
           var percentLoaded = Math.round((e.loaded / e.total) * 100);
           if (percentLoaded < 100)
-            dnd.progressBar.css("width", percentLoaded*2.5 + "px");
+            dnd.progressBar.style("width", percentLoaded*2.5 + "px");
         }
       };
-      reader.readAsText(e.originalEvent.dataTransfer.files[0]);
+      reader.readAsText(e.dataTransfer.files[0]);
       reader.onloadstart = function(e) {
         dnd.message.text("Reading file");
       };
       reader.onload = function(e) {
-        dnd.progressBar.css("width", "0px");
+        dnd.progressBar.style("width", "0px");
         dnd.message.text("Parsing network");
         Proc.off(Proc.AUTO_PLAY);
         NETWORK.parse(reader.result);
@@ -253,11 +262,11 @@ function dragAndDrop() {
 }
 
 // Method to call after page loaded
-$(function () {
+window.onload = function (){
   keys();
   control();
   howto();
   dragAndDrop();
   window.onresize = resize;
   NETWORK.load("data/test.csv");
-});
+}

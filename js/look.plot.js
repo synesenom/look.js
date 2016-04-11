@@ -300,7 +300,6 @@ var StructuralDynamics = {
         this.data.nodes.push(Object.keys(nodes).length);
       }
     }
-    console.log(this.data);
 
     // normalize data
     max = {

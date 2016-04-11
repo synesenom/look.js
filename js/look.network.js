@@ -98,7 +98,7 @@ var NETWORK = {
   // Parses a network from a CSV file converted to a string.
   parse: function(data) {
     var net = this;
-    var lines = $.trim(data).split('\n');
+    var lines = data.trim().split('\n');
     var numLines = lines.length;
     var li = 1;
     var nodesByName = {};
@@ -118,7 +118,7 @@ var NETWORK = {
       li += PARSE_CHUNK_SIZE;
       var percentLoaded = Math.round((li / numLines) * 100);
       if (percentLoaded < 100)
-        $(".dnd > .progress-bar").css("width", percentLoaded*2.5 + "px");
+        d3.select(".dnd > .progress-bar").style("width", percentLoaded*2.5 + "px");
       if (li < numLines) {
         setTimeout(parseLoop, 10);
       } else {
@@ -134,9 +134,9 @@ var NETWORK = {
   bin: function(binType, toBuild) {
     var net = this;
 
-    $(".dnd").css("display", "block");
-    $(".dnd > .message").text("Binning links");
-    $("#resolution > .value").text(binType.label);
+    d3.select(".dnd").style("display", "block");
+    d3.select(".dnd > .message").text("Binning links");
+    d3.select("#resolution > .value").text(binType.label);
     this.timeStamps = [];
     this.binnedLinks = [];
     bins = {};
@@ -163,7 +163,7 @@ var NETWORK = {
       li += 10000;
       var percentLoaded = Math.round((li / numLinks) * 100);
       if (percentLoaded < 100)
-        $(".dnd > .progress-bar").css("width", percentLoaded*2.5 + "px");
+        d3.select(".dnd > .progress-bar").style("width", percentLoaded*2.5 + "px");
       if (li < numLinks) {
         setTimeout(binLoop, 10);
       } else {
@@ -192,8 +192,8 @@ var NETWORK = {
         net.time.max = net.timeStamps.length-1;
         net.time.current = net.time.min;
         net.links = net.binnedLinks[net.time.current];
-        $(".dnd").css("display", "none");
-        $(".dnd > .message").text("");
+        d3.select(".dnd").style("display", "none");
+        d3.select(".dnd > .message").text("");
 
         // get structural dynamics
         StructuralDynamics.create(net);
@@ -212,9 +212,9 @@ var NETWORK = {
 
     // Update time
     dt = this.timeStamps[this.time.current];
-    $(".time").html(dt.toLocaleDateString() + " "
-                    + WEEKDAYS[net.timeStamps[net.time.current].getDay()] + " "
-                    + dt.toLocaleTimeString());
+    d3.select(".time").html(dt.toLocaleDateString() + " "
+      + WEEKDAYS[net.timeStamps[net.time.current].getDay()] + " "
+      + dt.toLocaleTimeString());
 
     // links
     var weight = WeightDistribution.get(this);
