@@ -26,6 +26,25 @@ body {
 	right: 20pt;
 }
 
+.button {
+	display: block;
+	padding: 2pt 5pt 2pt 5pt;
+	cursor: pointer;
+	border-radius: 2pt;
+	font-weight: 400;
+}
+.button:hover {
+	color: white;
+	background-color: #3399ff;
+}
+
+.overlay {
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(255, 255, 255, 0.9);
+}
+
 .control-panel {
 	position: fixed;
 	float: left;
@@ -49,15 +68,7 @@ body {
 }
 .control-element .value {
 	position: relative;
-	display: block;
 	float: right;
-	padding: 2pt 5pt 2pt 5pt;
-	cursor: pointer;
-	border-radius: 2pt;
-}
-.control-element .value:hover {
-	color: white;
-	background-color: #3399ff;
 }
 
 .settings {
@@ -146,11 +157,7 @@ body {
 }
 
 .dnd {
-	position: fixed;
-	width: 100%;
-	height: 100%;
 	display: none;
-	background-color: rgba(255, 255, 255, 0.9);
 }
 .dnd .message {
 	position: absolute;
@@ -176,12 +183,8 @@ body {
 }
 
 .help {
-	position: fixed;
-	width: 100%;
-	height: 100%;
 	display: none;
 	opacity: 0;
-	background-color: rgba(255, 255, 255, 0.9);
 }
 .help .box {
 	position: absolute;
@@ -199,7 +202,7 @@ body {
     border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: 2px;
     box-shadow: 1px 1px 2px gray;
-    background-color: white;
+    background-color: rgba(255, 255, 255, 0.3);
 }
 .help .box .content {
 	position: relative;

@@ -4,6 +4,7 @@
 <head>
 <link href='https://fonts.googleapis.com/css?family=Work+Sans:200,400,700' rel='stylesheet' type='text/css'>
 <link rel='stylesheet' type='text/css' href='css/look.css'/>
+<script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
 <script src="https://d3js.org/d3.v3.min.js"></script>
 <script src="js/look.utils.js"></script>
 <script src="js/look.ui.js"></script>
@@ -17,7 +18,7 @@
 	<div class="control-panel">
 		<div class="control-element" id="resolution">
 			<div class="label">resolution:</div>
-			<div class="value">hour</div>
+			<div class="value button">hour</div>
 		</div>
 		<!--<div class="control-element" id="dynamics">
 			<div class="label">dynamics:</div>
@@ -40,23 +41,23 @@
 	</div>
 	<div class="howto-panel">
 		<div class="howto-element">
-			<div id="howto-h" class="label"><span class="button">h</span></div>
+			<div id="howto-h" class="label large-button"><span class="button">h</span></div>
 			<div class="value">help menu</div>
 		</div>
 		<div class="howto-element">
-			<div id="howto-left" class="label"><span class="button">&#8592;</span></div>
+			<div id="howto-left" class="label large-button"><span class="button">&#8592;</span></div>
 			<div class="value">step backwards</div>
 		</div>
 		<div class="howto-element">
-			<div id="howto-right" class="label"><span class="button">&#8594;</span></div>
+			<div id="howto-right" class="label large-button"><span class="button">&#8594;</span></div>
 			<div class="value">step forward</div>
 		</div>
 		<div class="howto-element">
-			<div id="howto-r" class="label"><span class="button">r</span></div>
+			<div id="howto-r" class="label large-button"><span class="button">r</span></div>
 			<div class="value">reset time</div>
 		</div>
 		<div class="howto-element">
-			<div id="howto-space" class="label"><span class="button">space</span></div>
+			<div id="howto-space" class="label large-button"><span class="button">space</span></div>
 			<div class="value">auto play</div>
 		</div>
 	</div>
@@ -64,11 +65,11 @@
 	<svg id="weight-dist"></svg>
 	<svg id="structural-dynamics"></svg>
 
-	<div class="dnd">
+	<div class="dnd overlay">
 		<div class="message">Drop file to upload</div>
 		<div class="progress-bar"></div>
 	</div>
-	<div class="help">
+	<div class="help overlay">
 		<div class="box">
 			<div class="content">
 				<strong>look.js</strong><br><br>

@@ -78,29 +78,6 @@ function help(action) {
   }
 }
 
-function urlSource(action) {
-  switch(action){
-    case "show":
-      document.getElementById("url-source-url").value = "";
-      d3.select(".url-source").style("display", "block")
-        .transition().duration(500)
-        .style("opacity", 1);
-      // load button
-      d3.select(".url-source > .box > .button").on("click", function(){
-        console.log(document.getElementById("url-source-url").value);
-      });
-      break;
-    case "hide":
-      d3.select(".url-source")
-        .transition().duration(500)
-        .style("opacity", 0)
-        .each("end", function() {
-          d3.select(".url-source").style("display", "none");
-        });
-      break;
-  }
-}
-
 function control() {
   // Resolution
   d3.select("#resolution > .value").on("click", function(){
@@ -206,16 +183,6 @@ function keys() {
           } else {
             Proc.off(Proc.HELP_MENU);
             help("hide");
-          }
-          break;
-        // ctrl: url source
-        case 17:
-          if (!Proc.is(Proc.URL_SOURCE)) {
-            Proc.on(Proc.URL_SOURCE);
-            urlSource("show");
-          } else {
-            Proc.off(Proc.URL_SOURCE);
-            urlSource("hide");
           }
           break;
         // esc: exit help menu
