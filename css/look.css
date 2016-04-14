@@ -13,10 +13,24 @@ body {
 .node {
 	stroke: #ffffff;
 	stroke-width: 1px;
+	fill: #000;
+	opacity: 0.1;
 }
-.node .infected {
-	fill: "crimson";
+.node.active {
+	fill: #3399ff;
+	opacity: 1;
 }
+.node.susceptible {
+	fill: #3399ff;
+}
+.node.infected {
+	fill: crimson;
+}
+.node.recovered {
+	opacity: 1;
+	fill: yellowgreen;
+}
+
 .link {
 	stroke: #999;
 }
@@ -92,6 +106,7 @@ body {
 .settings-element .value {
 	position: relative;
 	float: right;
+	margin-right: 5pt;
 }
 .settings-element .button {
 	float: left;

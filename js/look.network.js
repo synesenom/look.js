@@ -57,7 +57,7 @@ var NETWORK = {
     this.svg.nodes = this.svg.graph.selectAll(".node")
         .data(net.nodes)
       .enter().append("circle")
-        .attr("class", "node")
+        .attr("class", function(d) { return "node node-"+d.id; })
         .call(net.force.drag);
 
     function tick() {
@@ -217,6 +217,7 @@ var NETWORK = {
         net.build();
         net.show();
         Proc.off(Proc.BINNING);
+        DYNAMICS.off(net);
       }
     })();
   },
@@ -252,13 +253,20 @@ var NETWORK = {
     // nodes
     var degree = DegreeDistribution.get(this);
     var degMax = Math.max(d3.max(d3.values(degree.values)), 1);
-    this.svg.nodes.transition().duration(200)
-      .attr("r", function(d){ return UI.network.node.r.min+UI.network.node.r.span*degree.values[d.index]/degMax; })
-      .attr("opacity", function(d){ return degree.values[d.index] > 0 ? UI.network.node.opacity.active : UI.network.node.opacity.inactive; })
-      .attr("fill", function(d){ return degree.values[d.index] > 0 ? UI.network.node.fill.active : UI.network.node.fill.inactive; });
+    this.svg.nodes
+      .classed("active", function(d){ return degree.values[d.index] > 0; })
+      .transition().duration(AUTO_PLAY_DT_IN_MILLISEC)
+      .attr("r", function(d){ return UI.network.node.r.min+UI.network.node.r.span*degree.values[d.index]/degMax; });
+      //.attr("opacity", function(d){ return degree.values[d.index] > 0 ? UI.network.node.opacity.active : UI.network.node.opacity.inactive; })
+      //.attr("fill", function(d){ return degree.values[d.index] > 0 ? UI.network.node.fill.active : UI.network.node.fill.inactive; });
     DegreeDistribution.show(degree.dist);
 
     // other statistics
     StructuralDynamics.show(this.time.current);
+
+    // dynamics
+    if (Proc.is(Proc.DYNAMICS)) {
+      DYNAMICS.sis(this);
+    }
   }
 };

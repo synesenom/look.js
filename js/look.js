@@ -97,23 +97,29 @@ function control() {
   });
 
   // Dynamics
-  /*
+  function reset() {
+    var params = {
+      beta: parseFloat(d3.select("#beta > .value").text()),
+      gamma: parseFloat(d3.select("#gamma > .value").text()),
+    };
+    DYNAMICS.on(NETWORK, params);
+  }
+  d3.select("#dynamics #reset").on("click", function(){ reset(); });
   d3.select("#dynamics > .value").on("click", function(){
     if (!Proc.is(Proc.DYNAMICS)) {
+      // show settings and enable dynamics
       d3.select("#dynamics > .value").text("sis");
-      d3.select("#dynamics > .settings")
-        .transition().duration(200)
-        .style("height", 51);
-      Proc.on(Proc.DYNAMICS);
+      $("#dynamics > .settings").animate({"height": 71}, 200);
+
+      // infect nodes
+      reset();
     } else {
+      // disable dynamics and hide settings
+      DYNAMICS.off(NETWORK);
       d3.select("#dynamics > .value").text("none");
-      d3.select("#dynamics > .settings")
-        .transition().duration(200)
-        .style("height", 0);
-      Proc.off(Proc.DYNAMICS);
+      $("#dynamics > .settings").animate({"height": 0}, 200);
     }
   });
-*/
 
   // Help
   d3.select(".help").on("click", function(){
@@ -164,11 +170,9 @@ function keys() {
           break;
         // space: auto play
         case 32:
-          if (!Proc.is(Proc.URL_SOURCE)) {
-            Proc.turn(Proc.AUTO_PLAY);
-            if (Proc.is(Proc.AUTO_PLAY))
-              autoPlay();
-          }
+          Proc.turn(Proc.AUTO_PLAY);
+          if (Proc.is(Proc.AUTO_PLAY))
+            autoPlay();
           break;
         // r: reset time
         case 82:

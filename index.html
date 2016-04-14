@@ -10,6 +10,7 @@
 <script src="js/look.ui.js"></script>
 <script src="js/look.plot.js"></script>
 <script src="js/look.network.js"></script>
+<script src="js/look.dynamics.js"></script>
 <script src="js/look.js"></script>
 <title>look.js</title>
 </head>
@@ -20,24 +21,23 @@
 			<div class="label">resolution:</div>
 			<div class="value button">hour</div>
 		</div>
-		<!--<div class="control-element" id="dynamics">
+		<div class="control-element" id="dynamics">
 			<div class="label">dynamics:</div>
-			<div class="value">none</div>
+			<div class="value button">none</div>
 			<div class="settings">
-				<div class="settings-element">
-					<div class="label">beta</div>
-					<div class="value">0.001</div>
-				</div>
-				<div class="settings-element">
-					<div class="label">alpha</div>
+				<div class="settings-element" id="beta">
+					<div class="label">beta:</div>
 					<div class="value">0.01</div>
 				</div>
+				<div class="settings-element" id="gamma">
+					<div class="label">gamma:</div>
+					<div class="value">0.02</div>
+				</div>
 				<div class="settings-element">
-					<div class="button">reset</div>
-					<div class="button">start</div>
+					<div class="button" id="reset">reset</div>
 				</div>
 			</div>
-		</div>-->
+		</div>
 	</div>
 	<div class="howto-panel">
 		<div class="howto-element">

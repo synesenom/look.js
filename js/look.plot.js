@@ -345,6 +345,7 @@ var StructuralDynamics = {
   show: function(t) {
     var x = this.scale.x(t/this.sampleRate);
     this.marker
+      .transition().duration(AUTO_PLAY_DT_IN_MILLISEC)
       .attr("x1", x)
       .attr("x2", x);
   }
