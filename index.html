@@ -23,15 +23,15 @@
 		</div>
 		<div class="control-element" id="dynamics">
 			<div class="label">dynamics:</div>
-			<div class="value button">none</div>
+			<div class="value button" id="dynamics-model">none</div>
 			<div class="settings">
-				<div class="settings-element" id="beta">
+				<div class="settings-element">
 					<div class="label">beta:</div>
-					<div class="value">0.01</div>
+					<input type="number" id="beta"class="range" min="0.001" max="1.0" step="0.001" value="0.01">
 				</div>
-				<div class="settings-element" id="gamma">
+				<div class="settings-element">
 					<div class="label">gamma:</div>
-					<div class="value">0.02</div>
+					<input type="number" id="gamma" class="range" min="0.0" max="1.0" step="0.001" value="0.02">
 				</div>
 				<div class="settings-element">
 					<div class="button" id="reset">reset</div>

@@ -97,29 +97,34 @@ function control() {
   });
 
   // Dynamics
-  function reset() {
-    var params = {
-      beta: parseFloat(d3.select("#beta > .value").text()),
-      gamma: parseFloat(d3.select("#gamma > .value").text()),
+  function getParams() {
+    return {
+      beta: document.getElementById("beta").value,
+      gamma: document.getElementById("gamma").value
     };
-    DYNAMICS.on(NETWORK, params);
   }
-  d3.select("#dynamics #reset").on("click", function(){ reset(); });
-  d3.select("#dynamics > .value").on("click", function(){
-    if (!Proc.is(Proc.DYNAMICS)) {
-      // show settings and enable dynamics
-      d3.select("#dynamics > .value").text("sis");
-      $("#dynamics > .settings").animate({"height": 71}, 200);
+  d3.select("#dynamics-model").on("click", function(){
+    // switch model
+    var model = DYNAMICS.switchModel(NETWORK, getParams());
 
-      // infect nodes
-      reset();
-    } else {
-      // disable dynamics and hide settings
-      DYNAMICS.off(NETWORK);
-      d3.select("#dynamics > .value").text("none");
-      $("#dynamics > .settings").animate({"height": 0}, 200);
+    // update UI
+    d3.select("#dynamics-model").text(model);
+    switch (model) {
+      case DYNAMICS.MODEL.none:
+        $("#dynamics > .settings").animate({"height": "0"}, 200);
+        break;
+      case DYNAMICS.MODEL.sis:
+        $("#dynamics > .settings").animate({"height": "72pt"}, 200);
+        break;
+      case DYNAMICS.MODEL.sir:
+        $("#dynamics > .settings").animate({"height": "72pt"}, 200);
+        break;
     }
   });
+  // set listeners
+  d3.select("#reset").on("click", function(){ DYNAMICS.on(NETWORK, getParams()); });
+  d3.select("#beta").on("input", function(){ DYNAMICS.set(getParams()); });
+  d3.select("#gamma").on("input", function(){ DYNAMICS.set(getParams()); });
 
   // Help
   d3.select(".help").on("click", function(){

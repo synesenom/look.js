@@ -265,8 +265,6 @@ var NETWORK = {
     StructuralDynamics.show(this.time.current);
 
     // dynamics
-    if (Proc.is(Proc.DYNAMICS)) {
-      DYNAMICS.sis(this);
-    }
+    DYNAMICS.update(this);
   }
 };
