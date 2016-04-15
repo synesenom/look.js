@@ -56,7 +56,8 @@ var DYNAMICS = {
       this.status[g.nodes[i].id] = infect ? 1 : 0;
       d3.select(".node-"+g.nodes[i].id)
         .classed("susceptible", !infect)
-        .classed("infected", infect);
+        .classed("infected", infect)
+        .classed("recovered", false);
     }
     Proc.on(Proc.DYNAMICS);
   },

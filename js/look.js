@@ -105,7 +105,7 @@ function control() {
   }
   d3.select("#dynamics-model").on("click", function(){
     // switch model
-    var model = DYNAMICS.switchModel(NETWORK, getParams());
+    var model = DYNAMICS.MODEL.sis;//DYNAMICS.switchModel(NETWORK, getParams());
 
     // update UI
     d3.select("#dynamics-model").text(model);
@@ -278,5 +278,5 @@ window.onload = function (){
   howto();
   dragAndDrop();
   window.onresize = resize;
-  NETWORK.load("data/test.csv");
+  //NETWORK.load("data/test.csv");
 }

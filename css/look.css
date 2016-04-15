@@ -44,7 +44,7 @@ body {
 
 .button {
 	display: block;
-	padding: 2pt 5pt 2pt 5pt;
+	padding: 3pt 5pt 3pt 5pt;
 	cursor: pointer;
 	border-radius: 2pt;
 	font-weight: 400;
@@ -131,7 +131,7 @@ body {
 }
 .settings-element .button {
 	float: left;
-	padding: 2pt 4pt;
+	padding: 3pt 5pt;
 	margin-left: 2pt;
 	margin-right: 10pt;
 	margin-top: 5pt;
@@ -238,7 +238,7 @@ body {
     border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: 2px;
     box-shadow: 1px 1px 2px gray;
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(255, 255, 255, 0.4);
 }
 .help .box .content {
 	position: relative;
