@@ -2,7 +2,7 @@
  * The dynamic manager object, responsible for all kinds of dynamics
  * on top of a the network.
  */
-var DYNAMICS = {
+var Dynamics = {
   MODEL: {
     none: "none",
     sis: "sis",
@@ -24,18 +24,22 @@ var DYNAMICS = {
   switchModel: function(g, params) {
     switch (this.model) {
       case this.MODEL.none:
+        $("#dynamics > .settings").animate({"height": "72pt"}, 200);
         this.model = this.MODEL.sis;
         this.on(g, params);
         break;
       case this.MODEL.sis:
+        $("#dynamics > .settings").animate({"height": "72pt"}, 200);
         this.model = this.MODEL.sir;
         this.on(g, params);
         break;
       case this.MODEL.sir:
+        $("#dynamics > .settings").animate({"height": "0"}, 200);
         this.model = this.MODEL.none;
         this.off();
         break;
     }
+    d3.select("#dynamics-model").text(this.model);
     return this.model;
   },
 
@@ -59,7 +63,6 @@ var DYNAMICS = {
         .classed("infected", infect)
         .classed("recovered", false);
     }
-    Proc.on(Proc.DYNAMICS);
   },
 
   off: function() {
@@ -67,11 +70,9 @@ var DYNAMICS = {
       .classed("susceptible", false)
       .classed("infected", false)
       .classed("recovered", false);
-    Proc.off(Proc.DYNAMICS);
   },
 
   update: function(g) {
-    console.log(this.params);
     switch (this.model) {
       case this.MODEL.sis:
         this.sis(g);

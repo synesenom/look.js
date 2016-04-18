@@ -1,5 +1,4 @@
 // Constants
-var PARSE_CHUNK_SIZE = 10000;
 var WEEKDAYS = {0: "Sun", 1: "Mon", 2: "Tue", 3: "Wed", 4: "Thu", 5: "Fri", 6: "Sat"};
 var AUTO_PLAY_DT_IN_MILLISEC = 100;
 var BINS = {
@@ -21,43 +20,34 @@ var BINS = {
 
 
 function step(direction) {
-  var prevTime = NETWORK.time.current;
+  var prevTime = Network.time.current;
   switch(direction) {
     case "forward":
-      NETWORK.time.current = Math.min(NETWORK.time.current+1, NETWORK.time.max);
+      Network.time.current = Math.min(Network.time.current+1, Network.time.max);
       break;
     case "backward":
-      NETWORK.time.current = Math.max(NETWORK.time.current-1, NETWORK.time.min);
+      Network.time.current = Math.max(Network.time.current-1, Network.time.min);
       break;
     case "reset":
-      NETWORK.time.current = NETWORK.time.min;
+      Network.time.current = Network.time.min;
       break;
   }
-  if (NETWORK.time.current != prevTime) {
-    NETWORK.links = NETWORK.binnedLinks[NETWORK.time.current];
-    NETWORK.show();
+  if (Network.time.current != prevTime) {
+    Network.links = Network.binnedLinks[Network.time.current];
+    Network.show();
   } else {
-    Proc.off(Proc.AUTO_PLAY);
+    AutoPlay.off();
   }
 }
 
 function resize() {
   var width = window.innerWidth,
   height = 600;
-  NETWORK.svg.graph
+  Network.svg.graph
     .attr("width", width)
     .attr("height", height);
-  NETWORK.force
+  Network.force
     .size([width, height]).start();
-}
-
-function autoPlay() {
-  if (Proc.is(Proc.AUTO_PLAY)) {
-    step("forward");
-    setTimeout(function(){
-      autoPlay();
-    }, AUTO_PLAY_DT_IN_MILLISEC);    
-  }
 }
 
 function help(action) {
@@ -81,16 +71,16 @@ function help(action) {
 function control() {
   // Resolution
   d3.select("#resolution > .value").on("click", function(){
-    Proc.off(Proc.AUTO_PLAY);
+    AutoPlay.off();
     switch (d3.select("#resolution > .value").text()) {
       case BINS.BIN_5_MINS.label:
-        NETWORK.bin(BINS.BIN_HOUR, false);
+        Network.bin(BINS.BIN_HOUR, false);
         break;
       case BINS.BIN_HOUR.label:
-        NETWORK.bin(BINS.BIN_DAY, false);
+        Network.bin(BINS.BIN_DAY, false);
         break;
       case BINS.BIN_DAY.label:
-        NETWORK.bin(BINS.BIN_5_MINS, false);
+        Network.bin(BINS.BIN_5_MINS, false);
         break;
       default:
     }
@@ -103,103 +93,69 @@ function control() {
       gamma: document.getElementById("gamma").value
     };
   }
-  d3.select("#dynamics-model").on("click", function(){
-    // switch model
-    var model = DYNAMICS.MODEL.sis;//DYNAMICS.switchModel(NETWORK, getParams());
-
-    // update UI
-    d3.select("#dynamics-model").text(model);
-    switch (model) {
-      case DYNAMICS.MODEL.none:
-        $("#dynamics > .settings").animate({"height": "0"}, 200);
-        break;
-      case DYNAMICS.MODEL.sis:
-        $("#dynamics > .settings").animate({"height": "72pt"}, 200);
-        break;
-      case DYNAMICS.MODEL.sir:
-        $("#dynamics > .settings").animate({"height": "72pt"}, 200);
-        break;
-    }
-  });
-  // set listeners
-  d3.select("#reset").on("click", function(){ DYNAMICS.on(NETWORK, getParams()); });
-  d3.select("#beta").on("input", function(){ DYNAMICS.set(getParams()); });
-  d3.select("#gamma").on("input", function(){ DYNAMICS.set(getParams()); });
+  d3.select("#dynamics-model").on("click", function(){ Dynamics.switchModel(Network, getParams()); });
+  d3.select("#reset").on("click", function(){ Dynamics.on(Network, getParams()); });
+  d3.select("#beta").on("input", function(){ Dynamics.set(getParams()); });
+  d3.select("#gamma").on("input", function(){ Dynamics.set(getParams()); });
 
   // Help
-  d3.select(".help").on("click", function(){
-    if (Proc.is(Proc.HELP_MENU)) {
-      Proc.off(Proc.HELP_MENU);
-      help("hide");
-    }
-  });
+  d3.select(".help").on("click", function(){ Help.off(); });
 }
 
 function howto() {
   d3.select("#howto-h").on("click", function(){
-    Proc.on(Proc.HELP_MENU);
-    help("show");
+    Help.on();
   });
   d3.select("#howto-left").on("click", function(){
-    Proc.off(Proc.AUTO_PLAY);
+    AutoPlay.off();
     step("backward");
   });
   d3.select("#howto-right").on("click", function(){
-    Proc.off(Proc.AUTO_PLAY);
+    AutoPlay.off();
     step("forward");
   });
   d3.select("#howto-r").on("click", function(){
-    Proc.off(Proc.AUTO_PLAY);
+    AutoPlay.off();
     step("reset");
   });
   d3.select("#howto-space").on("click", function(){
-    Proc.turn(Proc.AUTO_PLAY);
-    if (Proc.is(Proc.AUTO_PLAY))
-      autoPlay();
+    if (AutoPlay.on(function(){ step("forward"); }))
+      AutoPlay.off();
   });
 }
 
 function keys() {
   d3.select(document).on("keydown", function() {
-    if(!Proc.is(Proc.BINNING) && !Proc.is(Proc.PARSE)) {
+    if(!Network.is('binning') && !Network.is("parse")) {
       switch(d3.event.which) {
         // right arrow: increase time index
         case 39:
-          Proc.off(Proc.AUTO_PLAY);
+          AutoPlay.off();
           step("forward");
           break;
         // left arrow: decrease time index
         case 37:
-          Proc.off(Proc.AUTO_PLAY);
+          AutoPlay.off();
           step("backward");
           break;
         // space: auto play
         case 32:
-          Proc.turn(Proc.AUTO_PLAY);
-          if (Proc.is(Proc.AUTO_PLAY))
-            autoPlay();
+          if (AutoPlay.on(function(){ step("forward"); }))
+            AutoPlay.off();
           break;
         // r: reset time
         case 82:
-          Proc.off(Proc.AUTO_PLAY);
+          AutoPlay.off();
           step("reset");
           break;
         // h: help menu
         case 72:
-          if (!Proc.is(Proc.HELP_MENU)) {
-            Proc.on(Proc.HELP_MENU);
-            help("show");
-          } else {
-            Proc.off(Proc.HELP_MENU);
-            help("hide");
-          }
+          if (Help.on())
+            Help.off();
           break;
         // esc: exit help menu
         case 27:
-          if (Proc.is(Proc.HELP_MENU)) {
-            Proc.off(Proc.HELP_MENU);
-            help("hide");
-          }
+          Help.off();
           break;
       }
     }
@@ -264,8 +220,8 @@ function dragAndDrop() {
       reader.onload = function(e) {
         dnd.progressBar.style("width", "0px");
         dnd.message.text("Parsing network");
-        Proc.off(Proc.AUTO_PLAY);
-        NETWORK.parse(reader.result);
+        AutoPlay.off();
+        Network.parse(reader.result);
       };
     }
   });
@@ -278,5 +234,5 @@ window.onload = function (){
   howto();
   dragAndDrop();
   window.onresize = resize;
-  //NETWORK.load("data/test.csv");
+  Network.load("data/test.csv");
 }

@@ -13,7 +13,11 @@ var UI = {
       strokeWidth: 1.5,
     },
     force: {
-      linkStrength: 0.4
+      charge: -150,
+      linkDistance: 20,
+      linkStrength: 0.6,
+      gravity: 0.4,
+      friction: 0.4
     }
   },
 

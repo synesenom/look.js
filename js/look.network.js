@@ -1,7 +1,9 @@
+var PARSE_CHUNK_SIZE = 10000;
+
 /**
  * The network object, encapsulating all operations related to the network itself.
  */
-var NETWORK = {
+var Network = {
   nodes: [],
   rawLinks: [],
   binnedLinks: [],
@@ -19,6 +21,15 @@ var NETWORK = {
     links: null
   },
 
+  state: {
+    binning: false,
+    parse: false
+  },
+
+  is: function(process) {
+    return this.state[process];
+  },
+
   // Builds the network SVG.
   build: function() {
     var net = this;
@@ -30,15 +41,15 @@ var NETWORK = {
     resize();
 
     // Start the force layout.
-    var weight = WeightDistribution.get(this);
+    var weight = Metrics.weights(this);
     var weightMax = d3.max(weight.values);
     this.force
         .on("tick", tick)
-        .charge(-150)
-        .linkDistance(20)
+        .charge(UI.network.force.charge)
+        .linkDistance(UI.network.force.linkDistance)
         .linkStrength(UI.network.force.linkStrength)
-        .gravity(0.4)
-        .friction(0.4)
+        .gravity(UI.network.force.gravity)
+        .friction(UI.network.force.friction)
         .start();
 
     // Create the link lines.
@@ -104,7 +115,7 @@ var NETWORK = {
         } else {
           net.rawLinks.sort(Utils.sortByDate);
           net.nodes = d3.values(nodesByName);
-          net.bin(BINS.BIN_5_MINS, true);
+          net.bin(BINS.BIN_5_MINS);
         }
       })();
     });
@@ -112,13 +123,13 @@ var NETWORK = {
 
   // Parses a network from a CSV file converted to a string.
   parse: function(data) {
+    this.state.parse = true;
     var net = this;
     var lines = data.trim().split('\n');
     var numLines = lines.length;
     var li = 1;
     var nodesByName = {};
     var newFullLinks = [];
-    Proc.on(Proc.PARSE);
     (function parseLoop() {
       for (var i=li; i<li+PARSE_CHUNK_SIZE && i<numLines; i++) {
         cols = lines[i].split(' ');
@@ -140,13 +151,15 @@ var NETWORK = {
         newFullLinks.sort(Utils.sortByDate);
         net.nodes = d3.values(nodesByName);
         net.rawLinks = newFullLinks;
-        Proc.off(Proc.PARSE);
-        net.bin(BINS.BIN_5_MINS, true);
+        this.state.parse = false;
+        net.bin(BINS.BIN_5_MINS);
       }
     })();
   },
 
-  bin: function(binType, toBuild) {
+  bin: function(binType) {
+    Dynamics.off();
+    this.state.binning = true;
     var net = this;
 
     d3.select(".dnd").style("display", "block");
@@ -158,7 +171,6 @@ var NETWORK = {
 
     var numLinks = this.rawLinks.length;
     var li = 0;
-    Proc.on(Proc.BINNING);
     (function binLoop() {
       for (var i=li; i<li+10000 && i<numLinks; i++) {
         var l = net.rawLinks[i];
@@ -216,8 +228,7 @@ var NETWORK = {
         // build and show
         net.build();
         net.show();
-        Proc.off(Proc.BINNING);
-        DYNAMICS.off(net);
+        net.state.binning = false;
       }
     })();
   },
@@ -233,7 +244,7 @@ var NETWORK = {
       + dt.toLocaleTimeString());
 
     // links
-    var weight = WeightDistribution.get(this);
+    var weight = Metrics.weights(this);
     var weightMax = d3.max(weight.values);
     this.svg.links = this.svg.links.data(net.links);
     this.svg.links.enter()
@@ -251,20 +262,18 @@ var NETWORK = {
       .start();
 
     // nodes
-    var degree = DegreeDistribution.get(this);
+    var degree = Metrics.degrees(this);
     var degMax = Math.max(d3.max(d3.values(degree.values)), 1);
     this.svg.nodes
       .classed("active", function(d){ return degree.values[d.index] > 0; })
       .transition().duration(AUTO_PLAY_DT_IN_MILLISEC)
       .attr("r", function(d){ return UI.network.node.r.min+UI.network.node.r.span*degree.values[d.index]/degMax; });
-      //.attr("opacity", function(d){ return degree.values[d.index] > 0 ? UI.network.node.opacity.active : UI.network.node.opacity.inactive; })
-      //.attr("fill", function(d){ return degree.values[d.index] > 0 ? UI.network.node.fill.active : UI.network.node.fill.inactive; });
     DegreeDistribution.show(degree.dist);
 
     // other statistics
     StructuralDynamics.show(this.time.current);
 
     // dynamics
-    DYNAMICS.update(this);
+    Dynamics.update(this);
   }
 };

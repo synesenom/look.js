@@ -238,7 +238,7 @@ body {
     border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: 2px;
     box-shadow: 1px 1px 2px gray;
-    background-color: rgba(255, 255, 255, 0.4);
+    background-color: rgba(255, 255, 255, 0.5);
 }
 .help .box .content {
 	position: relative;
