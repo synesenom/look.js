@@ -113,7 +113,6 @@ var Network = {
         if (li < numLines) {
           setTimeout(loadLoop, 10);
         } else {
-          net.rawLinks.sort(Utils.sortByDate);
           net.nodes = d3.values(nodesByName);
           net.bin(BINS.BIN_5_MINS);
         }
@@ -148,7 +147,6 @@ var Network = {
       if (li < numLines) {
         setTimeout(parseLoop, 10);
       } else {
-        newFullLinks.sort(Utils.sortByDate);
         net.nodes = d3.values(nodesByName);
         net.rawLinks = newFullLinks;
         net.state.parse = false;
@@ -281,7 +279,6 @@ var Network = {
 
   set: function(time) {
     if (time >= this.time.min && time <= this.time.max) {
-      console.log(time);
       this.time.current = Math.floor(time);
       this.links = this.binnedLinks[this.time.current];
       this.show();

@@ -311,7 +311,10 @@ var StructuralDynamics = {
       .attr("height", UI.histogram.height)
       .on("mouseover", function(){ gm.style("display", null); })
       .on("mouseout", function() { gm.style("display", "none"); })
-      .on("click", function(){ Network.set(scale.x.invert(d3.mouse(this)[0])); })
+      .on("click", function(){
+        AutoPlay.off();
+        Network.set(scale.x.invert(d3.mouse(this)[0]));
+      })
       .on("mousemove", function() {
         var x0 = scale.x.invert(d3.mouse(this)[0]);
         gm.attr("x1", scale.x(x0))
