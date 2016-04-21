@@ -29,8 +29,8 @@ body {
 	opacity: 1;
 }
 .node.recovered {
-	opacity: 1;
 	fill: yellowgreen;
+	opacity: 1;
 }
 
 .link {
@@ -64,9 +64,8 @@ body {
 .control-panel {
 	position: fixed;
 	float: left;
-	width: 126pt;
+	width: 200px;
 	margin: 20pt;
-	border: 0pt solid #3399ff;
 	font-size: 10pt;
 	font-weight: 400;
 }
@@ -74,7 +73,7 @@ body {
 	position: relative;
 	display: block;
 	clear: both;
-	width: 120pt;
+	width: 200px;
 	height: 18pt;
 	padding-top: 4pt;
 }
@@ -90,8 +89,8 @@ body {
 
 .settings {
 	position: relative;
-	width: 120pt;
-	height: 0pt;
+	width: 200px;
+	height: 0px;
 	margin-top: 8pt;
 	overflow: hidden;
 }
@@ -99,7 +98,7 @@ body {
 	position: relative;
 	display: block;
 	clear: both;
-	width: 120pt;
+	width: 200px;
 	padding-top: 5pt;
 }
 .settings-element .label {

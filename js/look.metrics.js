@@ -46,6 +46,11 @@ var Metrics = {
   },
 
   components: function(g) {
-    
+    // create links
+
+    groups = new Array(g.nodes.length).fill(-1);
+    function dfs(n) {
+
+    }
   }
 };

@@ -93,8 +93,14 @@ function control() {
       gamma: document.getElementById("gamma").value
     };
   }
-  d3.select("#dynamics-model").on("click", function(){ Dynamics.switchModel(Network, getParams()); });
-  d3.select("#reset").on("click", function(){ Dynamics.on(Network, getParams()); });
+  d3.select("#dynamics-model").on("click", function(){
+    Dynamics.set(getParams());
+    Dynamics.switchModel(Network);
+  });
+  d3.select("#reset").on("click", function(){
+    Dynamics.set(getParams());
+    Dynamics.on(Network);
+  });
   d3.select("#beta").on("input", function(){ Dynamics.set(getParams()); });
   d3.select("#gamma").on("input", function(){ Dynamics.set(getParams()); });
 

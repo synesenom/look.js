@@ -151,14 +151,13 @@ var Network = {
         newFullLinks.sort(Utils.sortByDate);
         net.nodes = d3.values(nodesByName);
         net.rawLinks = newFullLinks;
-        this.state.parse = false;
+        net.state.parse = false;
         net.bin(BINS.BIN_5_MINS);
       }
     })();
   },
 
   bin: function(binType) {
-    Dynamics.off();
     this.state.binning = true;
     var net = this;
 
@@ -229,6 +228,9 @@ var Network = {
         net.build();
         net.show();
         net.state.binning = false;
+
+        if (Dynamics.model != Dynamics.MODEL.none)
+          Dynamics.on(net);
       }
     })();
   },

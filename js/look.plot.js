@@ -7,7 +7,7 @@
  * Object that encapsulates methods generating several elements of a plot.
  */
 var Plot = {
-  svg: function(id) {
+  svg: function(id, dimensions) {
     return d3.select(id)
       .attr("width", UI.histogram.width + UI.histogram.margin.left + UI.histogram.margin.right)
       .attr("height", UI.histogram.height + UI.histogram.margin.bottom + UI.histogram.margin.top)
