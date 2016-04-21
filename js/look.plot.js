@@ -15,12 +15,12 @@ var Plot = {
       .attr("transform", "translate(" + UI.histogram.margin.left + "," + UI.histogram.margin.top + ")");
   },
 
-  scale: function(data, type) {
+  scale: function(data, type, alpha) {
     switch(type) {
       case "linlin":
         return {
           x: d3.scale.linear()
-            .domain([0, data.length])
+            .domain([0, data.length*alpha])
             .range([0, UI.histogram.width]),
           y: d3.scale.linear()
             .domain([0, d3.max(data)])
@@ -29,7 +29,7 @@ var Plot = {
       case "loglog":
         return {
           x: d3.scale.log()
-            .domain([1, data.length])
+            .domain([1, data.length*alpha])
             .range([0, UI.histogram.width]),
           y: d3.scale.log()
             .domain([1, d3.max(data)])
@@ -121,7 +121,7 @@ var DegreeDistribution = {
     if (!this.svg) {
       // create svg and add elements
       this.svg = Plot.svg("#degree-dist");
-      var scale = this.scale = Plot.scale(data, "linlin");
+      var scale = this.scale = Plot.scale(data, "linlin", 1);
       this.axes = Plot.axes(this.scale, "linlin", UI.histogram.xTicks, UI.histogram.yTicks);
       Plot.addAxes(this.svg, this.axes);
       Plot.addLabels(this.svg, "degree", "freq");
@@ -182,7 +182,7 @@ var WeightDistribution = {
     if (!this.svg) {
       // create svg and add elements
       this.svg = Plot.svg("#weight-dist");
-      var scale = this.scale = Plot.scale(data, "loglog");
+      var scale = this.scale = Plot.scale(data, "loglog", 1);
       this.axes = Plot.axes(this.scale, "loglog", UI.histogram.xTicks, UI.histogram.yTicks);
       Plot.addAxes(this.svg, this.axes);
       Plot.addLabels(this.svg, "link weight", "freq");
@@ -231,16 +231,16 @@ var StructuralDynamics = {
   line: {},
   data: {},
   marker: null,
-  sampleRate: 1,
+  ghostMarker: null,
 
   create: function(g) {
     // sample rate (to avoid huge paths)
-    this.sampleRate = g.time.max > SAMPLE_NUMBER_MAX ? Math.ceil(g.time.max/SAMPLE_NUMBER_MAX) : 1;
+    var sampleRate = g.time.max > SAMPLE_NUMBER_MAX ? Math.ceil(g.time.max/SAMPLE_NUMBER_MAX) : 1;
 
     // get normalized data
     this.data = {links: [], nodes: []};
     for (var t=g.time.min; t<=g.time.max; t++) {
-      if (t % this.sampleRate == 0) {
+      if (t % sampleRate == 0) {
         // links
         this.data.links.push(g.binnedLinks[t].length);
 
@@ -268,8 +268,8 @@ var StructuralDynamics = {
     if(this.svg) {
       this.svg.remove();
     }
-    this.svg = Plot.svg("#structural-dynamics");
-    var scale = this.scale = Plot.scale(this.data.links, "linlin");
+    var svg = this.svg = Plot.svg("#structural-dynamics");
+    var scale = this.scale = Plot.scale(this.data.links, "linlin", sampleRate);
     this.axes = Plot.axes(this.scale, "linlin", 4, 3);
     Plot.addAxes(this.svg, this.axes);
     Plot.addLabels(this.svg, "time", "rel. intensity");
@@ -279,7 +279,7 @@ var StructuralDynamics = {
     // line
     var line = d3.svg.line()
       .interpolate("basis")
-      .x(function(d, i) { return scale.x(i); })
+      .x(function(d, i) { return scale.x(i*sampleRate); })
       .y(function(d) { return scale.y(d) + 1; });
 
     // add curves
@@ -292,13 +292,36 @@ var StructuralDynamics = {
     }
 
     // marker
-    this.marker = Plot.verticalMarker(this.svg, scale, 0);
+    var m = this.marker = Plot.verticalMarker(this.svg, scale, 0);
+
+    // ghost marker
+    var gm = this.ghostMarker = svg.append("line")
+      .attr("x1", scale.x(0))
+      .attr("y1", 1)
+      .attr("x2", scale.x(0))
+      .attr("y2", UI.histogram.height + 1)
+      .style("stroke-width", 1)
+      .style("stroke", "crimson")
+      .style("opacity", 0.2)
+      .style("display", "none")
+      .style("fill", "none");
+    this.svg.append("rect")
+      .attr("class", "overlay")
+      .attr("width", UI.histogram.width)
+      .attr("height", UI.histogram.height)
+      .on("mouseover", function(){ gm.style("display", null); })
+      .on("mouseout", function() { gm.style("display", "none"); })
+      .on("click", function(){ Network.set(scale.x.invert(d3.mouse(this)[0])); })
+      .on("mousemove", function() {
+        var x0 = scale.x.invert(d3.mouse(this)[0]);
+        gm.attr("x1", scale.x(x0))
+          .attr("x2", scale.x(x0));
+      });
   },
 
   show: function(t) {
-    var x = this.scale.x(t/this.sampleRate);
+    var x = this.scale.x(t);
     this.marker
-      .transition().duration(AUTO_PLAY_DT_IN_MILLISEC)
       .attr("x1", x)
       .attr("x2", x);
   }

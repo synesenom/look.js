@@ -277,5 +277,17 @@ var Network = {
 
     // dynamics
     Dynamics.update(this);
+  },
+
+  set: function(time) {
+    if (time >= this.time.min && time <= this.time.max) {
+      console.log(time);
+      this.time.current = Math.floor(time);
+      this.links = this.binnedLinks[this.time.current];
+      this.show();
+      return true;
+    } else {
+      return false;
+    }
   }
 };

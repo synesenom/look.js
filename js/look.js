@@ -20,22 +20,19 @@ var BINS = {
 
 
 function step(direction) {
-  var prevTime = Network.time.current;
+  var change = false;
   switch(direction) {
     case "forward":
-      Network.time.current = Math.min(Network.time.current+1, Network.time.max);
+      change = Network.set(Network.time.current+1);
       break;
     case "backward":
-      Network.time.current = Math.max(Network.time.current-1, Network.time.min);
+      change = Network.set(Network.time.current-1);
       break;
     case "reset":
-      Network.time.current = Network.time.min;
+      change = Network.set(Network.time.min);
       break;
   }
-  if (Network.time.current != prevTime) {
-    Network.links = Network.binnedLinks[Network.time.current];
-    Network.show();
-  } else {
+  if (!change) {
     AutoPlay.off();
   }
 }
