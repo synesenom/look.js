@@ -6,6 +6,7 @@
 <link rel='stylesheet' type='text/css' href='css/look.css'/>
 <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
 <script src="https://d3js.org/d3.v3.min.js"></script>
+<script src="js/help.js"></script>
 <script src="js/look.utils.js"></script>
 <script src="js/look.plot.js"></script>
 <script src="js/look.metrics.js"></script>
@@ -69,19 +70,6 @@
 	<div class="dnd overlay">
 		<div class="message">Drop file to upload</div>
 		<div class="progress-bar"></div>
-	</div>
-	<div class="help overlay">
-		<div class="box">
-			<div class="content">
-				<strong>look.js</strong><br><br>
-				To load and parse a network for display, simply drag and drop an edge list on the page. The edge list must be of the format "<pre>source target timestamp</pre>" (columns separated by spaces), where <pre>source</pre> and <pre>target</pre> denote the label of the corresponding nodes and <pre>timestamp</pre> is the UNIX timestamp of time instance when the link is active.<br><br>
-
-				The network is aggregated in time bins, the available bin sizes are 5 minutes, 1 hour and 1 day. By clicking on the current bin size, you can change the resolution.<br><br>
-				
-				You can navigate through the network in time, use the arrow keys <span class='inline-button'>&#8592;</span>
-				and <span class='inline-button'>&#8594;</span>. Automatic time evolution can be toggled with <span class='inline-button'>space</span>, time is set to zero with <span class='inline-button'>r</span>.<br><br>
-			</div>
-		</div>
 	</div>
 </body>
 </html>

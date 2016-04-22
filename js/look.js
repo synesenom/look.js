@@ -1,4 +1,15 @@
 // Constants
+var HELP_MENU_CONTENT = "<strong>look.js</strong><br><br>"
+        + "To load and parse a network for display, simply drag and drop an edge list on the page. "
+        + "The edge list must be of the format '<pre>source target timestamp</pre>' (columns separated by spaces), "
+        + "where <pre>source</pre> and <pre>target</pre> denote the label of the corresponding nodes and <pre>timestamp</pre>"
+        + "is the UNIX timestamp of time instance when the link is active.<br><br>"
+        + "The network is aggregated in time bins, the available bin sizes are 5 minutes, 1 hour and 1 day. "
+        + "By clicking on the current bin size, you can change the resolution.<br><br>"
+        + "You can navigate through the network in time, use the arrow keys <span class='inline-button'>&#8592;</span>"
+        + "and <span class='inline-button'>&#8594;</span>. "
+        + "Automatic time evolution can be toggled with <span class='inline-button'>space</span>, " 
+        + "time is set to zero with <span class='inline-button'>r</span>.<br><br>";
 var WEEKDAYS = {0: "Sun", 1: "Mon", 2: "Tue", 3: "Wed", 4: "Thu", 5: "Fri", 6: "Sat"};
 var AUTO_PLAY_DT_IN_MILLISEC = 100;
 var BINS = {
@@ -100,9 +111,6 @@ function control() {
   });
   d3.select("#beta").on("input", function(){ Dynamics.set(getParams()); });
   d3.select("#gamma").on("input", function(){ Dynamics.set(getParams()); });
-
-  // Help
-  d3.select(".help").on("click", function(){ Help.off(); });
 }
 
 function howto() {
@@ -150,15 +158,6 @@ function keys() {
         case 82:
           AutoPlay.off();
           step("reset");
-          break;
-        // h: help menu
-        case 72:
-          if (Help.on())
-            Help.off();
-          break;
-        // esc: exit help menu
-        case 27:
-          Help.off();
           break;
       }
     }
@@ -232,6 +231,7 @@ function dragAndDrop() {
 
 // Method to call after page loaded
 window.onload = function (){
+  Help.content(HELP_MENU_CONTENT);
   keys();
   control();
   howto();

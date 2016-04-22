@@ -50,33 +50,3 @@ var AutoPlay = {
     return this.isOn;
   }
 };
-
-var Help = {
-  isOn: false,
-
-  on: function() {
-    // show help
-    if (!this.isOn) {
-      this.isOn = true;
-      d3.select(".help").style("display", "block")
-        .transition().duration(500)
-        .style("opacity", 1);
-      return false;
-    } else
-      return true;
-  },
-
-  off: function() {
-    this.isOn = false;
-    d3.select(".help")
-      .transition().duration(500)
-      .style("opacity", 0)
-      .each("end", function() {
-        d3.select(".help").style("display", "none");
-      });
-  },
-
-  is: function() {
-    return this.isOn;
-  }
-};
