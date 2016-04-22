@@ -43,14 +43,5 @@ var Metrics = {
     Utils.extend(dist, 10);
 
     return {values: weights, dist: dist};
-  },
-
-  components: function(g) {
-    // create links
-
-    groups = new Array(g.nodes.length).fill(-1);
-    function dfs(n) {
-
-    }
   }
 };
