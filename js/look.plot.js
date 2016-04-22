@@ -319,7 +319,7 @@ var StructuralDynamics = {
       .style("display", "none")
       .style("fill", "none");
     this.svg.append("rect")
-      .attr("class", "overlay")
+      .attr("class", "plot-overlay")
       .attr("width", Plot.UI.width)
       .attr("height", Plot.UI.height)
       .on("mouseover", function(){ gm.style("display", null); })

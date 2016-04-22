@@ -306,7 +306,7 @@ path {
 	top: 200pt;
 	right: 20pt;
 }
-.overlay {
+.plot-overlay {
 	fill: none;
   	pointer-events: all;
 }
