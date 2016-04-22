@@ -7,12 +7,25 @@
  * Object that encapsulates methods generating several elements of a plot.
  */
 var Plot = {
+  UI: {
+    width: 200,
+    height: 60,
+    margin: {left: 40, right: 15, top: 16, bottom: 35},
+    barPadding: 1,
+    xTicks: 8,
+    yTicks: 3,
+    color: {
+      links: "#999",
+      nodes: "#3399ff"
+    }
+  },
+
   svg: function(id, dimensions) {
     return d3.select(id)
-      .attr("width", UI.histogram.width + UI.histogram.margin.left + UI.histogram.margin.right)
-      .attr("height", UI.histogram.height + UI.histogram.margin.bottom + UI.histogram.margin.top)
+      .attr("width", Plot.UI.width + Plot.UI.margin.left + Plot.UI.margin.right)
+      .attr("height", Plot.UI.height + Plot.UI.margin.bottom + Plot.UI.margin.top)
       .append("g")
-      .attr("transform", "translate(" + UI.histogram.margin.left + "," + UI.histogram.margin.top + ")");
+      .attr("transform", "translate(" + Plot.UI.margin.left + "," + Plot.UI.margin.top + ")");
   },
 
   scale: function(data, type, alpha) {
@@ -21,19 +34,19 @@ var Plot = {
         return {
           x: d3.scale.linear()
             .domain([0, data.length*alpha])
-            .range([0, UI.histogram.width]),
+            .range([0, Plot.UI.width]),
           y: d3.scale.linear()
             .domain([0, d3.max(data)])
-            .range([UI.histogram.height, 0])
+            .range([Plot.UI.height, 0])
         };
       case "loglog":
         return {
           x: d3.scale.log()
             .domain([1, data.length*alpha])
-            .range([0, UI.histogram.width]),
+            .range([0, Plot.UI.width]),
           y: d3.scale.log()
             .domain([1, d3.max(data)])
-            .range([UI.histogram.height, 0])
+            .range([Plot.UI.height, 0])
         };
     }
   },
@@ -63,7 +76,7 @@ var Plot = {
   addAxes: function(svg, axes) {
     svg.append("g")
       .attr("class", "x axis")
-      .attr("transform", "translate(0," + (UI.histogram.height+1) + ")")
+      .attr("transform", "translate(0," + (Plot.UI.height+1) + ")")
       .call(axes.x);
     svg.append("g")
       .attr("class", "y axis")
@@ -75,8 +88,8 @@ var Plot = {
     svg.append("text")
       .attr("class", "x axis-label")
       .attr("text-anchor", "end")
-      .attr("x", UI.histogram.width)
-      .attr("y", UI.histogram.height + 30)
+      .attr("x", Plot.UI.width)
+      .attr("y", Plot.UI.height + 30)
       .text(xLabel);
     svg.append("text")
       .attr("class", "y axis-label")
@@ -100,7 +113,7 @@ var Plot = {
       .attr("x1", scale.x(x))
       .attr("y1", 1)
       .attr("x2", scale.x(x))
-      .attr("y2", UI.histogram.height + 1)
+      .attr("y2", Plot.UI.height + 1)
       .style("stroke-width", 1)
       .style("stroke", "crimson")
       .style("fill", "none");
@@ -122,7 +135,7 @@ var DegreeDistribution = {
       // create svg and add elements
       this.svg = Plot.svg("#degree-dist");
       var scale = this.scale = Plot.scale(data, "linlin", 1);
-      this.axes = Plot.axes(this.scale, "linlin", UI.histogram.xTicks, UI.histogram.yTicks);
+      this.axes = Plot.axes(this.scale, "linlin", Plot.UI.xTicks, Plot.UI.yTicks);
       Plot.addAxes(this.svg, this.axes);
       Plot.addLabels(this.svg, "degree", "freq");
 
@@ -131,10 +144,10 @@ var DegreeDistribution = {
         .data(data)
         .enter().append("rect")
         .attr("class", "degree-dist-bar")
-        .attr("x", function(d, i) { return scale.x(i) + UI.histogram.barPadding; })
+        .attr("x", function(d, i) { return scale.x(i) + Plot.UI.barPadding; })
         .attr("y", function(d) { return scale.y(d) + 1; })
-        .attr("width", UI.histogram.width / data.length - UI.histogram.barPadding)
-        .attr("height", function(d) { return UI.histogram.height - scale.y(d); });
+        .attr("width", Plot.UI.width / data.length - Plot.UI.barPadding)
+        .attr("height", function(d) { return Plot.UI.height - scale.y(d); });
     } else {
       // update scale, axes and bars
       var scale = {
@@ -155,10 +168,10 @@ var DegreeDistribution = {
         .attr("class", "degree-dist-bar");
       bars
         .transition().duration(AUTO_PLAY_DT_IN_MILLISEC)
-        .attr("x", function(d, i) { return scale.x(i) + UI.histogram.barPadding; })
+        .attr("x", function(d, i) { return scale.x(i) + Plot.UI.barPadding; })
         .attr("y", function(d) { return scale.y(d) + 1; })
-        .attr("width", UI.histogram.width / data.length - UI.histogram.barPadding)
-        .attr("height", function(d) { return UI.histogram.height - scale.y(d); });
+        .attr("width", Plot.UI.width / data.length - Plot.UI.barPadding)
+        .attr("height", function(d) { return Plot.UI.height - scale.y(d); });
       bars.exit()
         .transition().duration(AUTO_PLAY_DT_IN_MILLISEC)
         .attr("height", 0)
@@ -183,7 +196,7 @@ var WeightDistribution = {
       // create svg and add elements
       this.svg = Plot.svg("#weight-dist");
       var scale = this.scale = Plot.scale(data, "loglog", 1);
-      this.axes = Plot.axes(this.scale, "loglog", UI.histogram.xTicks, UI.histogram.yTicks);
+      this.axes = Plot.axes(this.scale, "loglog", Plot.UI.xTicks, Plot.UI.yTicks);
       Plot.addAxes(this.svg, this.axes);
       Plot.addLabels(this.svg, "link weight", "freq");
 
@@ -273,8 +286,8 @@ var StructuralDynamics = {
     this.axes = Plot.axes(this.scale, "linlin", 4, 3);
     Plot.addAxes(this.svg, this.axes);
     Plot.addLabels(this.svg, "time", "rel. intensity");
-    Plot.addText(this.svg, UI.histogram.width-24, 0, "node", UI.histogram.color.nodes);
-    Plot.addText(this.svg, UI.histogram.width, 0, "link", UI.histogram.color.links);
+    Plot.addText(this.svg, Plot.UI.width-24, 0, "node", Plot.UI.color.nodes);
+    Plot.addText(this.svg, Plot.UI.width, 0, "link", Plot.UI.color.links);
 
     // line
     var line = d3.svg.line()
@@ -287,7 +300,7 @@ var StructuralDynamics = {
       var data = this.data[curve];
       this.svg.append("path")
         .attr("d", line(data))
-        .attr("stroke", UI.histogram.color[curve])
+        .attr("stroke", Plot.UI.color[curve])
         .attr("class", "structural-dynamics-" + curve);
     }
 
@@ -299,7 +312,7 @@ var StructuralDynamics = {
       .attr("x1", scale.x(0))
       .attr("y1", 1)
       .attr("x2", scale.x(0))
-      .attr("y2", UI.histogram.height + 1)
+      .attr("y2", Plot.UI.height + 1)
       .style("stroke-width", 1)
       .style("stroke", "crimson")
       .style("opacity", 0.2)
@@ -307,8 +320,8 @@ var StructuralDynamics = {
       .style("fill", "none");
     this.svg.append("rect")
       .attr("class", "overlay")
-      .attr("width", UI.histogram.width)
-      .attr("height", UI.histogram.height)
+      .attr("width", Plot.UI.width)
+      .attr("height", Plot.UI.height)
       .on("mouseover", function(){ gm.style("display", null); })
       .on("mouseout", function() { gm.style("display", "none"); })
       .on("click", function(){

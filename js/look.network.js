@@ -4,6 +4,14 @@ var PARSE_CHUNK_SIZE = 10000;
  * The network object, encapsulating all operations related to the network itself.
  */
 var Network = {
+  UI: {
+    node: {
+      r: {min: 3, span: 4}
+    },
+    link: {
+      strokeOpacity: {min: 0.1, span: 0.9}
+    }
+  },
   nodes: [],
   rawLinks: [],
   binnedLinks: [],
@@ -45,11 +53,11 @@ var Network = {
     var weightMax = d3.max(weight.values);
     this.force
         .on("tick", tick)
-        .charge(UI.network.force.charge)
-        .linkDistance(UI.network.force.linkDistance)
-        .linkStrength(UI.network.force.linkStrength)
-        .gravity(UI.network.force.gravity)
-        .friction(UI.network.force.friction)
+        .charge(-150)
+        .linkDistance(20)
+        .linkStrength(0.6)
+        .gravity(0.4)
+        .friction(0.4)
         .start();
 
     // Create the link lines.
@@ -59,8 +67,7 @@ var Network = {
         .data(net.links)
       .enter().append("line")
         .attr("class", "link")
-        .attr("stroke-opacity", function(d){ return UI.network.link.strokeOpacity.min+UI.network.link.strokeOpacity.span*(d.weight/weightMax); })
-        .attr("stroke-width", UI.network.link.strokeWidth);
+        .attr("stroke-opacity", function(d){ return Network.UI.link.strokeOpacity.min+Network.UI.link.strokeOpacity.span*(d.weight/weightMax); });
 
     // Create the node circles.
     if(this.svg.nodes != null)
@@ -250,8 +257,7 @@ var Network = {
     this.svg.links.enter()
       .insert("line", ".node")
       .attr("class", "link")
-      .attr("stroke-opacity", function(d){ return UI.network.link.strokeOpacity.min+UI.network.link.strokeOpacity.span*(d.weight/weightMax); })
-      .attr("stroke-width", UI.network.link.strokeWidth);
+      .attr("stroke-opacity", function(d){ return Network.UI.link.strokeOpacity.min+Network.UI.link.strokeOpacity.span*(d.weight/weightMax); });
     this.svg.links.exit().remove();
     WeightDistribution.show(weight.dist);
 
@@ -267,7 +273,7 @@ var Network = {
     this.svg.nodes
       .classed("active", function(d){ return degree.values[d.index] > 0; })
       .transition().duration(AUTO_PLAY_DT_IN_MILLISEC)
-      .attr("r", function(d){ return UI.network.node.r.min+UI.network.node.r.span*degree.values[d.index]/degMax; });
+      .attr("r", function(d){ return Network.UI.node.r.min+Network.UI.node.r.span*degree.values[d.index]/degMax; });
     DegreeDistribution.show(degree.dist);
 
     // other statistics
