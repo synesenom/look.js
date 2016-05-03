@@ -103,6 +103,7 @@ body {
 	padding-top: 5pt;
 }
 .settings-element .label {
+	width: 80pt;
 	position: relative;
 	float: left;
 	padding: 2pt;

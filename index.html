@@ -2,7 +2,7 @@
 <html>
 <meta charset="utf-8">
 <head>
-<link href='https://fonts.googleapis.com/css?family=Work+Sans:200,400,700' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Work+Sans:200,400,700' rel='stylesheet' type='text/css' />
 <link rel='stylesheet' type='text/css' href='css/look.css'/>
 <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
 <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -27,12 +27,15 @@
 			<div class="value button" id="dynamics-model">none</div>
 			<div class="settings">
 				<div class="settings-element">
-					<div class="label">beta:</div>
-					<input type="number" id="beta"class="range" min="0.001" max="1.0" step="0.001" value="0.01">
+					<div class="label">beta [day<sup>-1</sup>]:</div>
+					<input type="number" id="beta"class="range" min="0.01" max="10.0" step="0.01" value="1">
 				</div>
 				<div class="settings-element">
-					<div class="label">gamma:</div>
-					<input type="number" id="gamma" class="range" min="0.0" max="1.0" step="0.001" value="0.02">
+					<div class="label">T<sub>inf</sub> [day]:</div>
+					<input type="number" id="tinf" class="range" min="0.1" max="10.0" step="0.1" value="2">
+				</div>
+				<div class="settings-element">
+					<div class="label">R<sub>0</sub> = <span id="r0-value">2</span></div>
 				</div>
 				<div class="settings-element">
 					<div class="button" id="reset">reset</div>

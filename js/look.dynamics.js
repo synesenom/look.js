@@ -11,6 +11,8 @@ var CURVES = {
     labelShift: 48
   }
 };
+var FIVE_MINS_IN_DAY = 300000;
+var MSEC_IN_DAY = 86400000;
 
 /**
  * The dynamic manager object, responsible for all kinds of dynamics
@@ -22,7 +24,14 @@ var Dynamics = {
     sis: "sis",
     sir: "sir"
   },
-  params: null,
+  params: {
+    k: 1,
+    dt: 0.0034722,
+    beta: null,
+    gamma: null,
+    p: 0.01,
+    q: 0.01
+  },
   status: null,
   model: "none",
   plot: {
@@ -34,7 +43,10 @@ var Dynamics = {
     path: null,
     width: 160,
     height: 60,
-    margin: {left: 28, right: 10, top: 30, bottom: 35}
+    margin: {left: 28, right: 10, top: 30, bottom: 35},
+    theory: {
+      i: null
+    }
   },
   size: 1,
   data: null,
@@ -141,6 +153,16 @@ var Dynamics = {
           .attr("class", "dynamics-statistics-"+CURVES[y_].name);
         })(y);
       }
+
+      // add theory
+      this.plot.theory.i = this.plot.svg.append("line")
+        .attr("x1", 0)
+        .attr("x2", p.width)
+        .style("stroke-width", 1)
+        .style("stroke", "crimson")
+        .style("opacity", 0.2)
+        .style("fill", "none");
+      this.updateTheory();
     } else {
       // update data
       this.time++;
@@ -175,12 +197,12 @@ var Dynamics = {
   switchModel: function(g) {
     switch (this.model) {
       case this.MODEL.none:
-        $("#dynamics > .settings").animate({"height": "230px"}, 200);
+        $("#dynamics > .settings").animate({"height": "250px"}, 200);
         this.model = this.MODEL.sis;
         this.on(g);
         break;
       case this.MODEL.sis:
-        $("#dynamics > .settings").animate({"height": "230px"}, 200);
+        $("#dynamics > .settings").animate({"height": "250px"}, 200);
         this.model = this.MODEL.sir;
         this.on(g);
         break;
@@ -197,10 +219,38 @@ var Dynamics = {
 
   // Sets parameters
   set: function(params) {
-    this.params = params;
+    // physical parameters are set
+    if (params.beta && params.tinf) {
+      this.params.beta = params.beta;
+      this.params.gamma = 1 / params.tinf;
+      d3.select("#r0-value").text(Math.round(this.params.beta/this.params.gamma*1000)/1000);
+    }
+    // structural parameters are set
+    if (params.k && params.dt) {
+      this.params.k = params.k;
+      this.params.dt = params.dt;
+    }
+
+    // update simulation probabilities
+    this.params.p = this.params.beta * 0.0034722 / this.params.k;
+    this.params.q = this.params.gamma * this.params.dt;
+
+    // update theoretical stationary value
+    this.updateTheory();
   },
 
-  // Sets parameters and initializes node states
+  updateTheory: function() {
+    if (this.plot.theory.i) {
+      var r0 = this.params.beta / this.params.gamma;
+      var iStat = r0 >= 1 ? 1 - 1/r0 : 0;
+      var scale = this.plot.scale;
+      this.plot.theory.i
+        .attr("y1", scale.y(iStat))
+        .attr("y2", scale.y(iStat));
+    }
+  },
+
+  // Initializes node states
   on: function(g) {
     // clean up previous stuff
     this.off();
@@ -216,6 +266,13 @@ var Dynamics = {
         .classed("infected", infect)
         .classed("recovered", false);
     }
+
+    // get structural properties
+    var tmin = d3.min(g.rawLinks, function(d) { return d.date.getTime(); });
+    var tmax = d3.max(g.rawLinks, function(d) { return d.date.getTime(); });
+    var tnum = (tmax-tmin)/FIVE_MINS_IN_DAY;
+    var params = {k: 2 * g.rawLinks.length/(g.nodes.length * tnum), dt: g.time.bin/MSEC_IN_DAY};
+    this.set(params);
 
     // set plot
     this.trend();
@@ -257,7 +314,7 @@ var Dynamics = {
     for (var i=0; i<g.links.length; i++) {
       s = g.links[i].source.id;
       t = g.links[i].target.id;
-      if (this.status[s] != this.status[t] && Math.random() < this.params.beta) {
+      if (this.status[s] != this.status[t] && Math.random() < this.params.p*g.links[i].weight) {
         next[s] = 1;
         next[t] = 1;
       }
@@ -265,7 +322,7 @@ var Dynamics = {
 
     // recoveries
     for (var i=0; i<this.size; i++) {
-      if (this.status[g.nodes[i].id] == 1 && Math.random() < this.params.gamma) {
+      if (this.status[g.nodes[i].id] == 1 && Math.random() < this.params.q) {
         next[g.nodes[i].id] = 0;
       }
     }
@@ -295,7 +352,7 @@ var Dynamics = {
     for (var i=0; i<g.links.length; i++) {
       s = g.links[i].source.id;
       t = g.links[i].target.id;
-      if (this.status[s] + this.status[t] == 1 && Math.random() < this.params.beta) {
+      if (this.status[s] + this.status[t] == 1 && Math.random() < this.params.p*g.links[i].weight) {
         next[s] = 1;
         next[t] = 1;
       }
@@ -303,7 +360,7 @@ var Dynamics = {
 
     // recoveries
     for (var i=0; i<this.size; i++) {
-      if (this.status[g.nodes[i].id] == 1 && Math.random() < this.params.gamma) {
+      if (this.status[g.nodes[i].id] == 1 && Math.random() < this.params.q) {
         next[g.nodes[i].id] = 2;
       }
     }
@@ -317,6 +374,9 @@ var Dynamics = {
 
       // highlight changes
       if (this.status[id] == 0 && next[id] == 1)
+        this.highlight(id);
+
+      if (this.status[id] == 1 && next[id] == 2)
         this.highlight(id);
 
       // update status array

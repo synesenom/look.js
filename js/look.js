@@ -10,7 +10,6 @@ var HELP_MENU_CONTENT = "<strong>look.js</strong><br><br>"
         + "and <span class='inline-button'>&#8594;</span>. "
         + "Automatic time evolution can be toggled with <span class='inline-button'>space</span>, " 
         + "time is set to zero with <span class='inline-button'>r</span>.<br><br>";
-var WEEKDAYS = {0: "Sun", 1: "Mon", 2: "Tue", 3: "Wed", 4: "Thu", 5: "Fri", 6: "Sat"};
 var AUTO_PLAY_DT_IN_MILLISEC = 100;
 var BINS = {
   BIN_5_MINS: { label: "5 mins", msec: 300000 },
@@ -97,8 +96,8 @@ function control() {
   // Dynamics
   function getParams() {
     return {
-      beta: document.getElementById("beta").value,
-      gamma: document.getElementById("gamma").value
+      beta: parseFloat(document.getElementById("beta").value),
+      tinf: parseFloat(document.getElementById("tinf").value)
     };
   }
   d3.select("#dynamics-model").on("click", function(){
@@ -110,7 +109,7 @@ function control() {
     Dynamics.on(Network);
   });
   d3.select("#beta").on("input", function(){ Dynamics.set(getParams()); });
-  d3.select("#gamma").on("input", function(){ Dynamics.set(getParams()); });
+  d3.select("#tinf").on("input", function(){ Dynamics.set(getParams()); });
 }
 
 function howto() {

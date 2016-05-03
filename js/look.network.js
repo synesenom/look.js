@@ -1,4 +1,5 @@
 var PARSE_CHUNK_SIZE = 10000;
+var WEEKDAYS = {0: "Sun", 1: "Mon", 2: "Tue", 3: "Wed", 4: "Thu", 5: "Fri", 6: "Sat"};
 
 /**
  * The network object, encapsulating all operations related to the network itself.
@@ -19,7 +20,8 @@ var Network = {
   time: {
     min: 0,
     max: 0,
-    current: 0
+    current: 0,
+    bin: null
   },
   timeStamps: [],
   force: null,
@@ -164,15 +166,16 @@ var Network = {
 
   bin: function(binType) {
     this.state.binning = true;
-    var net = this;
 
     d3.select(".dnd").style("display", "block");
     d3.select(".dnd > .message").text("Binning links");
     d3.select("#resolution > .value").text(binType.label);
+    this.time.bin = binType.msec;
     this.timeStamps = [];
     this.binnedLinks = [];
     bins = {};
 
+    var net = this;
     var numLinks = this.rawLinks.length;
     var li = 0;
     (function binLoop() {
@@ -285,7 +288,7 @@ var Network = {
 
   set: function(time) {
     if (time >= this.time.min && time <= this.time.max) {
-      this.time.current = Math.floor(time);
+      this.time.current = Math.round(time);
       this.links = this.binnedLinks[this.time.current];
       this.show();
       return true;

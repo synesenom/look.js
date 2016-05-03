@@ -316,8 +316,7 @@ var StructuralDynamics = {
       .style("stroke-width", 1)
       .style("stroke", "crimson")
       .style("opacity", 0.2)
-      .style("display", "none")
-      .style("fill", "none");
+      .style("display", "none");
     this.svg.append("rect")
       .attr("class", "plot-overlay")
       .attr("width", Plot.UI.width)
@@ -329,7 +328,7 @@ var StructuralDynamics = {
         Network.set(scale.x.invert(d3.mouse(this)[0]));
       })
       .on("mousemove", function() {
-        var x0 = scale.x.invert(d3.mouse(this)[0]);
+        var x0 = Math.round(scale.x.invert(d3.mouse(this)[0]));
         gm.attr("x1", scale.x(x0))
           .attr("x2", scale.x(x0));
       });
