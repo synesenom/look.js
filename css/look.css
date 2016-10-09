@@ -22,19 +22,16 @@ body {
 }
 .node.susceptible {
 	fill: #3399ff;
-	opacity: 1;
 }
 .node.infected {
 	fill: crimson;
-	opacity: 1;
 }
 .node.recovered {
 	fill: yellowgreen;
-	opacity: 1;
 }
 
 .link {
-	stroke: #999;
+	stroke: lightslategray;
 	stroke-width: 1.5px;
 }
 .time {
@@ -222,6 +219,7 @@ body {
 pre {
 	display: inline;
 	color: #3399ff;
+	font-size: 1.1em;
 }
 
 strong {
@@ -229,6 +227,7 @@ strong {
 }
 
 .inline-button {
+	position: relative;
 	display: inline-block;
 	border: 1px solid #3399ff;
 	border-radius: 3pt;
@@ -237,6 +236,12 @@ strong {
 	min-width: 6pt;
 	text-align: center;
 	font-size: 0.8em;
+	font-weight: 400;
+	top: -1px;
+}
+.inline-button.dark {
+	background-color: #3399ff;
+	color: white;
 }
 
 .histogram-label {

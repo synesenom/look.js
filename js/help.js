@@ -18,7 +18,7 @@ var Help = {
       "display": "none",
       "opacity": 0
     },
-    box: {
+    wrapper: {
       "position": "absolute",
       "top": "50%",
       "left": "50%",
@@ -27,19 +27,24 @@ var Help = {
       "padding": "20px",
       "margin-left": "-220px",
       "margin-top": "-170px",
+      "box-shadow": "1px 1px 2px gray",
+      "background-color": "rgba(255, 255, 255, 0.5)",
+      "border": "1px solid rgba(0, 0, 0, 0.1)",
+      "border-radius": 2
+    },
+    box: {
+      "height": "320px",
       "font-size": "11pt",
       "font-weight": "200",
       "color": "black",
       "text-align": "justify",
-      "border": "1px solid rgba(0, 0, 0, 0.1)",
-      "border-radius": 2,
-      "box-shadow": "1px 1px 2px gray",
-      "background-color": "rgba(255, 255, 255, 0.5)"
+      "overflow": "scroll"
     },
     content: {
       "position": "relative"
     }
   },
+  _wrapper: null,
   _box: null,
   _content: null,
 
@@ -53,7 +58,9 @@ var Help = {
         .append("div")
         .attr("id", "help")
         .style(Help._style.help);
-      this._box = help.append("div")
+      this._wrapper = help.append("div")
+        .style(Help._style.wrapper);
+      this._box = this._wrapper.append("div")
         .style(Help._style.box);
       this._content = this._box.append("div")
         .attr("class", "content")

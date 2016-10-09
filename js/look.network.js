@@ -1,5 +1,10 @@
 var PARSE_CHUNK_SIZE = 10000;
 var WEEKDAYS = {0: "Sun", 1: "Mon", 2: "Tue", 3: "Wed", 4: "Thu", 5: "Fri", 6: "Sat"};
+var NETWORK_TYPE = {
+  static: "static",
+  dynamicUnix: "dynamic-unix",
+  dynamicStep: "dynamic-step"
+};
 
 /**
  * The network object, encapsulating all operations related to the network itself.
@@ -17,6 +22,7 @@ var Network = {
   rawLinks: [],
   binnedLinks: [],
   links: [],
+  type: false,
   time: {
     min: 0,
     max: 0,
@@ -46,7 +52,7 @@ var Network = {
 
     if (this.svg.graph != null)
         this.svg.graph.remove();
-    this.svg.graph = d3.select("body").append("svg");
+    this.svg.graph = d3.select("body").append("svg").style("margin-top", 20);
     this.force = d3.layout.force();
     resize();
 
@@ -107,13 +113,30 @@ var Network = {
       var numLines = data.length;
       var rawLinks = [];
       (function loadLoop() {
+        // Decide network type
+        net.type = NETWORK_TYPE.static;
+        if (data[0].timestamp)
+          net.type = NETWORK_TYPE.dynamicUnix;
+        if (data[0].timestep)
+          net.type = NETWORK_TYPE.dynamicStep;
+
         for (var i=li; i<li+PARSE_CHUNK_SIZE && i<numLines; i++) {
-          var dt = new Date(data[i].timestamp*1000);
+          var dt = 0;
+          switch (net.type) {
+            case NETWORK_TYPE.dynamicUnix:
+              dt = new Date(data[i].timestamp*1000);
+              break;
+            case NETWORK_TYPE.dynamicStep:
+              dt = data[i].timestep;
+              break
+            default:
+              break;
+          }
           var s = data[i].source;
           var t = data[i].target;
           var l = {source: nodesByName[s] || (nodesByName[s] = {id: s}),
                    target: nodesByName[t] || (nodesByName[t] = {id: t})};
-          net.rawLinks.push({'date': dt, 'link': l});
+          net.rawLinks.push({'time': dt, 'link': l});
         }
         li += PARSE_CHUNK_SIZE;
         var percentLoaded = Math.round((li / numLines) * 100);
@@ -139,23 +162,44 @@ var Network = {
     var nodesByName = {};
     var newFullLinks = [];
     (function parseLoop() {
+      // Decide if network is dynamic or static
+      var header = lines[0].split(' ');
+      net.type = NETWORK_TYPE.static;
+      if (header.length > 2)
+        net.type = (header[2] == "timestamp") ? NETWORK_TYPE.dynamicUnix : NETWORK_TYPE.dynamicStep;
+
+      // Read links
       for (var i=li; i<li+PARSE_CHUNK_SIZE && i<numLines; i++) {
-        cols = lines[i].split(' ');
-        var dt = new Date(cols[2]*1000);
+        var cols = lines[i].split(' ');
+        var dt = 0;
+        switch (net.type) {
+          case NETWORK_TYPE.dynamicUnix:
+            dt = new Date((+cols[2]) * 1000);
+            break;
+          case NETWORK_TYPE.dynamicStep:
+            dt = +cols[2];
+            break;
+          default:
+            break;
+        }
         var s = cols[0];
         var t = cols[1];
         var l = {source: nodesByName[s] || (nodesByName[s] = {id: s}),
                  target: nodesByName[t] || (nodesByName[t] = {id: t}),
                  weight: 1};
-        newFullLinks.push({'date': dt, 'link': l});
+        newFullLinks.push({'time': dt, 'link': l});
       }
+      // Update progress bar
       li += PARSE_CHUNK_SIZE;
       var percentLoaded = Math.round((li / numLines) * 100);
       if (percentLoaded < 100)
         d3.select(".dnd > .progress-bar").style("width", percentLoaded*2.5 + "px");
+
+      // Continue parsing if there are edges left
       if (li < numLines) {
         setTimeout(parseLoop, 10);
       } else {
+        // Update network
         net.nodes = d3.values(nodesByName);
         net.rawLinks = newFullLinks;
         net.state.parse = false;
@@ -181,7 +225,15 @@ var Network = {
     (function binLoop() {
       for (var i=li; i<li+10000 && i<numLinks; i++) {
         var l = net.rawLinks[i];
-        var bin = BINS.date(l.date, binType);
+        var bin = l.time;
+        switch (net.type) {
+          case NETWORK_TYPE.dynamicUnix:
+            bin = BINS.date(l.time, binType);
+            break;
+          default:
+            break;
+        }
+
         if (!bins[bin]) {
           bins[bin] = {};
           net.timeStamps.push(bin);
@@ -208,7 +260,14 @@ var Network = {
         net.timeStamps = [];
         var binIndex = 0;
         for (var t=timeMin; t<=timeMax; ) {
-          net.timeStamps.push(new Date(t));
+          switch (net.type) {
+            case NETWORK_TYPE.dynamicUnix:
+              net.timeStamps.push(new Date(t));
+              break;
+            default:
+              net.timeStamps.push(t);
+              break;
+          }
 
           // add links
           net.binnedLinks.push([]);
@@ -216,7 +275,14 @@ var Network = {
             net.binnedLinks[binIndex].push(bins[t][l]);
           }
 
-          t.setTime( t.getTime() + diff );
+          switch (net.type) {
+            case NETWORK_TYPE.dynamicUnix:
+              t.setTime( t.getTime() + diff );
+              break;
+            default:
+              t++;
+              break;
+          }
           binIndex++;
         }
         bins = null;
@@ -248,10 +314,20 @@ var Network = {
     var net = this;
 
     // Update time
-    dt = this.timeStamps[this.time.current];
-    d3.select(".time").html(dt.toLocaleDateString() + " "
-      + WEEKDAYS[net.timeStamps[net.time.current].getDay()] + " "
-      + dt.toLocaleTimeString());
+    switch (net.type) {
+      case NETWORK_TYPE.dynamicUnix:
+        dt = this.timeStamps[this.time.current];
+        d3.select(".time").html(dt.toLocaleDateString() + " "
+          + WEEKDAYS[net.timeStamps[net.time.current].getDay()] + " "
+          + dt.toLocaleTimeString());
+        break;
+      case NETWORK_TYPE.static:
+        d3.select(".time").html("static");
+        break;
+      default:
+        d3.select(".time").html("step " + this.time.current);
+        break;
+    }
 
     // links
     var weight = Metrics.weights(this);

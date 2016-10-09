@@ -15,7 +15,7 @@ var Plot = {
     xTicks: 8,
     yTicks: 3,
     color: {
-      links: "#999",
+      links: "#778899",
       nodes: "#3399ff"
     }
   },

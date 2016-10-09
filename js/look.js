@@ -2,14 +2,16 @@
 var HELP_MENU_CONTENT = "<strong>look.js</strong><br><br>"
         + "To load and parse a network for display, simply drag and drop an edge list on the page. "
         + "The edge list must be of the format '<pre>source target timestamp</pre>' (columns separated by spaces), "
-        + "where <pre>source</pre> and <pre>target</pre> denote the label of the corresponding nodes and <pre>timestamp</pre>"
+        + "where <pre>source</pre> and <pre>target</pre> denote the label of the corresponding nodes and <pre>timestamp</pre> "
         + "is the UNIX timestamp of time instance when the link is active.<br><br>"
         + "The network is aggregated in time bins, the available bin sizes are 5 minutes, 1 hour and 1 day. "
         + "By clicking on the current bin size, you can change the resolution.<br><br>"
-        + "You can navigate through the network in time, use the arrow keys <span class='inline-button'>&#8592;</span>"
+        + "You can navigate through the network in time, use the arrow keys <span class='inline-button'>&#8592;</span> "
         + "and <span class='inline-button'>&#8594;</span>. "
         + "Automatic time evolution can be toggled with <span class='inline-button'>space</span>, " 
-        + "time is set to zero with <span class='inline-button'>r</span>.<br><br>";
+        + "time is set to zero with <span class='inline-button'>r</span>.<br><br>"
+        + "To run available dynamics (SIS, SIR), click on <span class='inline-button dark'>none</span> "
+        + "at the dynamics setting.";
 var AUTO_PLAY_DT_IN_MILLISEC = 100;
 var BINS = {
   BIN_5_MINS: { label: "5 mins", msec: 300000 },
@@ -50,9 +52,11 @@ function step(direction) {
 function resize() {
   var width = window.innerWidth,
   height = 600;
-  Network.svg.graph
-    .attr("width", width)
-    .attr("height", height);
+  if (Network.svg.graph) {
+    Network.svg.graph
+      .attr("width", width)
+      .attr("height", height);
+  }
   Network.force
     .size([width, height]).start();
 }
@@ -236,5 +240,5 @@ window.onload = function (){
   howto();
   dragAndDrop();
   window.onresize = resize;
-  Network.load("data/test.csv");
+  Network.load("data/test-dynamic-unix.csv");
 }

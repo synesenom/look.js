@@ -5,6 +5,11 @@ var CURVES = {
     name: "infected",
     labelShift: 0
   },
+  si: {
+    color: "lightslategray",
+    name: "s-i",
+    labelShift: 48
+  },
   r: {
     color: "yellowgreen",
     name: "recovered",
@@ -52,23 +57,39 @@ var Dynamics = {
   data: null,
   time: 0,
 
-  // highlights a node
+  /**
+  * Highlights a node by rapidly increasing its size for a short period.
+  * @param {number} id Id of the node to highlight.
+  */
   highlight: function(id) {
+    // take original radius
     var r = d3.select(".node-"+id).attr("r");
+
+    // set new radius and transition back to original in 200 msec
     d3.select(".node-"+id)
       .attr("r", 20)
       .transition().duration(200)
       .attr("r", r);
   },
 
-  measure: function() {
+  measure: function(g) {
     switch (this.model) {
       case this.MODEL.sis:
+        var dyn = this;
+
+        // prevalence
         var iCount = d3.selectAll(".infected");
+
+        // s-i links
+        var siCount = 0;
+        g.links.forEach(function(l) {
+          siCount += +(dyn.status[l.source.id] != dyn.status[l.target.id]);
+        });
         return {
           t: this.time,
           y: {
-            i: iCount ? iCount[0].length/this.size : 0
+            i: iCount ? iCount[0].length/this.size : 0,
+            si: siCount > 0 ? siCount/g.links.length : 0
           }
         };
       case this.MODEL.sir:
@@ -84,11 +105,11 @@ var Dynamics = {
     }
   },
 
-  trend: function() {
+  trend: function(g) {
     if (!this.plot.svg) {
       // set time and clear data
       this.time = 0;
-      var m = this.measure();
+      var m = this.measure(g);
       var data = this.data = [m];
 
       // create svg and add elements
@@ -145,6 +166,7 @@ var Dynamics = {
         // create lines and add plots
         (function(y_) {
         line[y_] = d3.svg.line()
+          .interpolate("basis") 
           .x(function(d) { return scale.x(d.t); })
           .y(function(d) { return scale.y(d.y[y_]); })
         svg.append("path")
@@ -155,18 +177,24 @@ var Dynamics = {
       }
 
       // add theory
-      this.plot.theory.i = this.plot.svg.append("line")
-        .attr("x1", 0)
-        .attr("x2", p.width)
-        .style("stroke-width", 1)
-        .style("stroke", "crimson")
-        .style("opacity", 0.2)
-        .style("fill", "none");
+      switch (this.model) {
+        case this.MODEL.sis:
+          this.plot.theory.i = this.plot.svg.append("line")
+            .attr("x1", 0)
+            .attr("x2", p.width)
+            .style("stroke-width", 1)
+            .style("stroke", "crimson")
+            .style("opacity", 0.2)
+            .style("fill", "none");
+          break;
+        default:
+          break;
+      }
       this.updateTheory();
     } else {
       // update data
       this.time++;
-      var m = this.measure();
+      var m = this.measure(g);
       this.data.push(m);
       if (this.data.length > TREND_MAX)
         this.data.shift();
@@ -240,13 +268,21 @@ var Dynamics = {
   },
 
   updateTheory: function() {
-    if (this.plot.theory.i) {
-      var r0 = this.params.beta / this.params.gamma;
-      var iStat = r0 >= 1 ? 1 - 1/r0 : 0;
-      var scale = this.plot.scale;
-      this.plot.theory.i
-        .attr("y1", scale.y(iStat))
-        .attr("y2", scale.y(iStat));
+    switch (this.model) {
+      case this.MODEL.sis:
+        if (this.plot.theory.i) {
+          var r0 = this.params.beta / this.params.gamma;
+          var iStat = r0 >= 1 ? 1 - 1/r0 : 0;
+          var scale = this.plot.scale;
+          this.plot.theory.i
+            .attr("y1", scale.y(iStat))
+            .attr("y2", scale.y(iStat));
+        }
+        break;
+      default:
+        if (this.plot.theory.i)
+          this.plot.theory.i = null;
+        break;
     }
   },
 
@@ -275,7 +311,7 @@ var Dynamics = {
     this.set(params);
 
     // set plot
-    this.trend();
+    this.trend(g);
   },
 
   off: function() {
@@ -296,29 +332,30 @@ var Dynamics = {
     switch (this.model) {
       case this.MODEL.sis:
         this.sis(g);
-        this.trend();
+        this.trend(g);
         break;
       case this.MODEL.sir:
         this.sir(g);
-        this.trend();
+        this.trend(g);
         break;
     }
   },
 
   sis: function(g) {
     // next states (changes only)
+    var dyn = this;
     var next = {};
 
     // infections
-    var w, s, t;
-    for (var i=0; i<g.links.length; i++) {
-      s = g.links[i].source.id;
-      t = g.links[i].target.id;
-      if (this.status[s] != this.status[t] && Math.random() < this.params.p*g.links[i].weight) {
+    var s, t;
+    g.links.forEach(function(l) {
+      s = l.source.id;
+      t = l.target.id;
+      if (dyn.status[s] != dyn.status[t] && Math.random() < dyn.params.p*l.weight) {
         next[s] = 1;
         next[t] = 1;
       }
-    }
+    });
 
     // recoveries
     for (var i=0; i<this.size; i++) {
@@ -348,7 +385,7 @@ var Dynamics = {
     var next = {};
 
     // infections
-    var w, s, t;
+    var s, t;
     for (var i=0; i<g.links.length; i++) {
       s = g.links[i].source.id;
       t = g.links[i].target.id;
@@ -374,9 +411,6 @@ var Dynamics = {
 
       // highlight changes
       if (this.status[id] == 0 && next[id] == 1)
-        this.highlight(id);
-
-      if (this.status[id] == 1 && next[id] == 2)
         this.highlight(id);
 
       // update status array
