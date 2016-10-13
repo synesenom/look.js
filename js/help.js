@@ -6,7 +6,7 @@ var Help = {
   _isOn: false,
   _width: 400,
   _height: 320,
-  _padding: 20,
+  _padding: 30,
   _style: {
     help: {
       "position": "fixed",

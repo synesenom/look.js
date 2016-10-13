@@ -72,6 +72,10 @@ var Dynamics = {
       .attr("r", r);
   },
 
+  is: function(model) {
+    return this.model == model;
+  },
+
   measure: function(g) {
     switch (this.model) {
       case this.MODEL.sis:
@@ -225,19 +229,26 @@ var Dynamics = {
   switchModel: function(g) {
     switch (this.model) {
       case this.MODEL.none:
-        $("#dynamics > .settings").animate({"height": "250px"}, 200);
+        d3.select("#dynamics > .settings")
+          .transition().duration(200)
+          .style({"height": "250px"});
         this.model = this.MODEL.sis;
         this.on(g);
         break;
       case this.MODEL.sis:
-        $("#dynamics > .settings").animate({"height": "250px"}, 200);
+        d3.select("#dynamics > .settings")
+          .transition().duration(200)
+          .style({"height": "250px"});
         this.model = this.MODEL.sir;
         this.on(g);
         break;
       case this.MODEL.sir:
-        $("#dynamics > .settings").animate({"height": "0px"}, 200, function(){
-          Dynamics.off();
-        });
+        d3.select("#dynamics > .settings")
+          .transition().duration(200)
+          .style({"height": "0px"})
+          .each("end", function() {
+            Dynamics.off();
+          });
         this.model = this.MODEL.none;
         break;
     }
@@ -304,11 +315,15 @@ var Dynamics = {
     }
 
     // get structural properties
-    var tmin = d3.min(g.rawLinks, function(d) { return d.date.getTime(); });
-    var tmax = d3.max(g.rawLinks, function(d) { return d.date.getTime(); });
-    var tnum = (tmax-tmin)/FIVE_MINS_IN_DAY;
-    var params = {k: 2 * g.rawLinks.length/(g.nodes.length * tnum), dt: g.time.bin/MSEC_IN_DAY};
-    this.set(params);
+    var tnum = 1;
+    var dt = 1;
+    if (Network.type == NETWORK_TYPE.dynamicUnix) {
+      var tmin = d3.min(g.rawLinks, function(d) { return d.time.getTime(); });
+      var tmax = d3.max(g.rawLinks, function(d) { return d.time.getTime(); });
+      tnum = (tmax-tmin)/FIVE_MINS_IN_DAY;
+      dt = g.time.bin/MSEC_IN_DAY;
+    }
+    this.set({k: 2 * g.rawLinks.length/(g.nodes.length * tnum), dt: dt});
 
     // set plot
     this.trend(g);

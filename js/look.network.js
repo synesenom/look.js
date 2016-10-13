@@ -22,7 +22,7 @@ var Network = {
   rawLinks: [],
   binnedLinks: [],
   links: [],
-  type: false,
+  type: NETWORK_TYPE.dynamicUnix,
   time: {
     min: 0,
     max: 0,
@@ -303,7 +303,7 @@ var Network = {
         net.show();
         net.state.binning = false;
 
-        if (Dynamics.model != Dynamics.MODEL.none)
+        if (!Dynamics.is(Dynamics.MODEL.none))
           Dynamics.on(net);
       }
     })();

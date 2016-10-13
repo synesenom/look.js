@@ -1,9 +1,11 @@
 // Constants
 var HELP_MENU_CONTENT = "<strong>look.js</strong><br><br>"
         + "To load and parse a network for display, simply drag and drop an edge list on the page. "
-        + "The edge list must be of the format '<pre>source target timestamp</pre>' (columns separated by spaces), "
-        + "where <pre>source</pre> and <pre>target</pre> denote the label of the corresponding nodes and <pre>timestamp</pre> "
-        + "is the UNIX timestamp of time instance when the link is active.<br><br>"
+        + "The edge list must be of the format '<pre>source target [time]</pre>' (columns separated by spaces), "
+        + "where <pre>source</pre> and <pre>target</pre> denote the label of the corresponding nodes and <pre>time</pre> "
+        + "is time instance when the link is active (optional). "
+        + "A header must be included denoting whether the third column is a time step (<strong>timestep</strong>) "
+        + "or a UNIX timestamp (<strong>timestamp</strong>)<br><br>"
         + "The network is aggregated in time bins, the available bin sizes are 5 minutes, 1 hour and 1 day. "
         + "By clicking on the current bin size, you can change the resolution.<br><br>"
         + "You can navigate through the network in time, use the arrow keys <span class='inline-button'>&#8592;</span> "
@@ -45,7 +47,10 @@ function step(direction) {
       break;
   }
   if (!change) {
-    AutoPlay.off();
+    if (!Dynamics.is(Dynamics.model.none))
+      change = Network.set(Network.time.min);
+    else
+      AutoPlay.off();
   }
 }
 
@@ -138,27 +143,38 @@ function howto() {
   });
 }
 
+function highlightButton(selector) {
+  d3.select(selector).classed("active", true);
+  setTimeout(function() {
+    d3.select(selector).classed("active", false);
+  }, 150);
+}
+
 function keys() {
   d3.select(document).on("keydown", function() {
     if(!Network.is('binning') && !Network.is("parse")) {
       switch(d3.event.which) {
         // right arrow: increase time index
         case 39:
+          highlightButton("#howto-right > .button");
           AutoPlay.off();
           step("forward");
           break;
         // left arrow: decrease time index
         case 37:
+          highlightButton("#howto-left > .button");
           AutoPlay.off();
           step("backward");
           break;
         // space: auto play
         case 32:
+          highlightButton("#howto-space > .button");
           if (AutoPlay.on(function(){ step("forward"); }))
             AutoPlay.off();
           break;
         // r: reset time
         case 82:
+          highlightButton("#howto-r > .button");
           AutoPlay.off();
           step("reset");
           break;
@@ -240,5 +256,5 @@ window.onload = function (){
   howto();
   dragAndDrop();
   window.onresize = resize;
-  Network.load("data/test-dynamic-unix.csv");
+  Network.load("data/test-dynamic-unix.tsv");
 }
