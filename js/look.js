@@ -255,6 +255,6 @@ window.onload = function (){
   control();
   howto();
   dragAndDrop();
-  window.onresize = resize;
   Network.load("data/test-dynamic-unix.tsv");
+  window.onresize = resize;
 }
